@@ -38,10 +38,10 @@ class GPT4Adapter(EmbeddingModel):
         return [item["embedding"] for item in response["data"]]
 
 
-class MPNetAdapter(EmbeddingModel):
+class SentenceTransformerAdapter(EmbeddingModel):
     def __init__(self, model="sentence-transformers/all-mpnet-base-v2"):
         logging.getLogger().setLevel(logging.INFO)
-        self.mpnet_model = SentenceTransformer(model)
+        self.model = SentenceTransformer(model)
 
     def get_embedding(self, text: str):
         logging.info(f"Getting embedding for {text}")
@@ -51,13 +51,13 @@ class MPNetAdapter(EmbeddingModel):
                 return None
             if isinstance(text, str):
                 text = text.replace("\n", " ")
-            return self.mpnet_model.encode(text)
+            return self.model.encode(text)
         except Exception as e:
             logging.error(f"Error getting embedding for {text}: {e}")
             return None
 
     def get_embeddings(self, messages: [str]) -> [[float]]:
-        embeddings = self.mpnet_model.encode(messages)
+        embeddings = self.model.encode(messages)
         flattened_embeddings = [[float(element) for element in row] for row in embeddings]
         return flattened_embeddings
 

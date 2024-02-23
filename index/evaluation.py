@@ -197,19 +197,19 @@ def score_mappings(matches: pd.DataFrame) -> float:
     return accuracy
 
 
-def evaluate(datasets, labels, store_results=False, model="gpt", results_root_dir="resources/results/pd"):
+def evaluate(datasets, labels, model: str, matching_method="euclidean", store_results=False, results_root_dir="resources/results/pd"):
     data = {}
     for idx, source in enumerate(datasets):
         acc = []
         for idy, target in enumerate(datasets):
-            if model == "gpt":
+            if matching_method == "euclidean":
                 map = match_closest_descriptions(source, target)
-            elif model == "mpnet":
+            elif matching_method == "cosine":
                 map = match_closest_descriptions(source,target, matching_method=MatchingMethod.COSINE_EMBEDDING_DISTANCE)
-            elif model == "fuzzy":
+            elif matching_method == "fuzzy":
                 map = match_closest_descriptions(source, target, matching_method=MatchingMethod.FUZZY_STRING_MATCHING)
             else:
-                raise NotImplementedError("Specified model is not implemented!")
+                raise NotImplementedError("Matching method is not implemented!")
             if store_results:
                 map.to_excel(results_root_dir + f"/{model}_" + f"{labels[idx]}_to_{labels[idy]}.xlsx")
             acc.append(round(score_mappings(map), 2))

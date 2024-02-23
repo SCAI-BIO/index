@@ -1,3 +1,4 @@
+from typing import Dict
 from enum import Enum
 
 import numpy as np
@@ -35,20 +36,21 @@ def get_cohort_specific_color_code(cohort_name: str):
         return None
 
 
-def enrichment_plot(acc_gpt, acc_mpnet, acc_fuzzy, title, save_plot=False, save_dir="resources/results/plots"):
-    if not (len(acc_gpt) == len(acc_fuzzy) == len(acc_mpnet)):
-        raise ValueError("acc_gpt, acc_mpnet and acc_fuzzy should be of the same length!")
-    data = {"Maximum Considered Rank": list(range(1, len(acc_gpt) + 1)), "GPT": acc_gpt, 
-            "MPNet": acc_mpnet, "Fuzzy": acc_fuzzy}
+def enrichment_plot(accuracies: Dict[str, [float]], title, save_plot=False, save_dir="resources/results/plots"):
+    lengths = set(len(lst) for lst in accuracies.values())
+    if len(lengths) != 1:
+        raise ValueError("Accuracy scores of models should be of the same length!")
+    
+    data = copy.deepcopy(accuracies)
+    data["Maximum Considered Rank"] = list(range(1, list(lengths)[0] + 1))
     df = pd.DataFrame(data)
     sns.set(style="whitegrid")
-    sns.lineplot(data=df, x="Maximum Considered Rank", y="GPT", label="GPT")
-    sns.lineplot(data=df, x="Maximum Considered Rank", y="MPNet", label="MPNet")
-    sns.lineplot(data=df, x="Maximum Considered Rank", y="Fuzzy", label="Fuzzy String Matching")
+    for model, _ in accuracies.items():
+        sns.lineplot(data=df, x="Maximum Considered Rank", y=model, label=model)
     sns.set(style="whitegrid")
     plt.xlabel("Maximum Considered Rank")
     plt.ylabel("Accuracy")
-    plt.xticks(range(1, len(acc_gpt) + 1), labels=range(1, len(acc_gpt) + 1))
+    plt.xticks(range(1, list(lengths)[0] + 1), labels=range(1, list(lengths)[0] + 1))
     plt.yticks([i / 10 for i in range(11)])
     plt.gca().set_yticklabels([f"{i:.1f}" for i in plt.gca().get_yticks()])
     plt.title(title)

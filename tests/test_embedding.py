@@ -1,21 +1,21 @@
 import unittest
-from index.embedding import MPNetAdapter, TextEmbedding
+from index.embedding import SentenceTransformerAdapter, TextEmbedding
 import numpy as np
 
 class TestEmbedding(unittest.TestCase):
 
     def setUp(self):
-        self.mpnet_adapter = MPNetAdapter(model="sentence-transformers/all-mpnet-base-v2")
+        self.sentence_transformer_adapter = SentenceTransformerAdapter(model="sentence-transformers/all-mpnet-base-v2")
 
-    def test_mpnet_adapter_get_embedding(self):
+    def test_sentence_transformer_adapter_get_embedding(self):
         text = "This is a test sentence."
-        embedding = self.mpnet_adapter.get_embedding(text)
+        embedding = self.sentence_transformer_adapter.get_embedding(text)
         self.assertIsInstance(embedding, np.ndarray)
         self.assertEqual(len(embedding), 768)
 
-    def test_mpnet_adapter_get_embeddings(self):
+    def test_sentence_transformer_adapter_get_embeddings(self):
         messages = ["This is message 1.", "This is message 2."]
-        embeddings = self.mpnet_adapter.get_embeddings(messages)
+        embeddings = self.sentence_transformer_adapter.get_embeddings(messages)
         self.assertIsInstance(embeddings, list)
         self.assertEqual(len(embeddings), len(messages))
         self.assertEqual(len(embeddings[0]), 768)
