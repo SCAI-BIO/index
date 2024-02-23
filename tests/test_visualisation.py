@@ -108,11 +108,11 @@ class Test(TestCase):
                                  ["A1", "A2"], ["B1", "B2"], store_html=False)
 
     def test_enrichment_plot(self):
-        acc_gpt = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.0, 1.0, 1.0]
-        acc_mpnet = [0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1.0, 1.0, 1.0, 1.0]
-        acc_fuzzy = [0.2, 0.3, 0.4, 0.5, 0.8, 0.9, 1.0, 1.0, 1.0, 1.0]
+        acc = {"M1": [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.0, 1.0, 1.0],
+               "M2": [0.3, 0.4, 0.5, 0.6, 0.8, 0.9, 1.0, 1.0, 1.0, 1.0],
+               "M3": [0.2, 0.3, 0.4, 0.5, 0.8, 0.9, 1.0, 1.0, 1.0, 1.0]}
         title = "Test"
-        enrichment_plot(acc_gpt, acc_mpnet, acc_fuzzy, title, save_plot=False)
+        enrichment_plot(acc, title, save_plot=False)
 
     def test_bar_chart_average_acc_two_distributions(self):
         labels = ["M1", "M2", "M3"]
