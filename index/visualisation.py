@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from enum import Enum
 
 import numpy as np
@@ -36,7 +36,7 @@ def get_cohort_specific_color_code(cohort_name: str):
         return None
 
 
-def enrichment_plot(accuracies: Dict[str, [float]], title, save_plot=False, save_dir="resources/results/plots"):
+def enrichment_plot(accuracies: Dict[str, List[float]], title, save_plot=False, save_dir="resources/results/plots"):
     lengths = set(len(lst) for lst in accuracies.values())
     if len(lengths) != 1:
         raise ValueError("Accuracy scores of models should be of the same length!")
