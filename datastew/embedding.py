@@ -33,7 +33,7 @@ class GPT4Adapter(EmbeddingModel):
             return None
 
     def get_embeddings(self, messages: [str], model="text-embedding-ada-002"):
-        # store index of nan entries
+        # store datastew of nan entries
         response = openai.Embedding.create(input=messages, model=model)
         return [item["embedding"] for item in response["data"]]
 

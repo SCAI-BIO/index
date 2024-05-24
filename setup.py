@@ -16,7 +16,7 @@ except FileNotFoundError:
 setup(
     name='intdex',
     version='0.0.2',
-    packages=['index'],
+    packages=['datastew'],
     url='https://github.com/SCAI-BIO/index',
     license='Apache-2.0 license"',
     author='Tim Adams',

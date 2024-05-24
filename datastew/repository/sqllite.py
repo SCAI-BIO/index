@@ -5,13 +5,13 @@ from typing import Union, List
 
 from sqlalchemy import create_engine, func, cast, String
 from sqlalchemy.orm import sessionmaker, aliased
-from index.db.model import Base, Terminology, Concept, Mapping
-from index.repository.base import BaseRepository
+from datastew.db.model import Base, Terminology, Concept, Mapping
+from datastew.repository.base import BaseRepository
 
 
 class SQLLiteRepository(BaseRepository):
 
-    def __init__(self, mode="disk", path="index/db/index.db"):
+    def __init__(self, mode="disk", path="datastew/db/datastew.db"):
         if mode == "disk":
             self.engine = create_engine(f'sqlite:///{path}')
         # for tests

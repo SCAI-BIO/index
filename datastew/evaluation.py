@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial import distance
 from sklearn.metrics.pairwise import cosine_distances
 
-from index.mapping import MappingTable
+from datastew.mapping import MappingTable
 
 
 class MatchingMethod(Enum):
@@ -27,7 +27,7 @@ def enrichment_analysis(source_table: MappingTable, target_table: MappingTable, 
     :param max_cumulative_match_rank: The n the closest matches that should be taken into consideration
     :return: a dataframe containing the matches
     """
-    # index n will correspond to correctly match within the n the closest variables
+    # datastew n will correspond to correctly match within the n the closest variables
     correct_matches = np.zeros(max_cumulative_match_rank)
     # not every variable can be matched
     max_matches = 0
@@ -38,7 +38,7 @@ def enrichment_analysis(source_table: MappingTable, target_table: MappingTable, 
     if (matching_method == MatchingMethod.EUCLIDEAN_EMBEDDING_DISTANCE or matching_method == MatchingMethod.COSINE_EMBEDDING_DISTANCE):
         source_table.joined_mapping_table.dropna(subset=["embedding"], inplace=True)
         target_table.joined_mapping_table.dropna(subset=["embedding"], inplace=True)
-    # re-index to account for dropped rows
+    # re-datastew to account for dropped rows
     target_table.joined_mapping_table = target_table.joined_mapping_table.reset_index(drop=True)
     for idx, source_table_row in source_table.joined_mapping_table.iterrows():
         correct_target_index = target_table.joined_mapping_table[
@@ -97,7 +97,7 @@ def match_closest_descriptions(source_table: MappingTable, target_table: Mapping
     if (matching_method == MatchingMethod.EUCLIDEAN_EMBEDDING_DISTANCE or matching_method == MatchingMethod.COSINE_EMBEDDING_DISTANCE):
         if ("embedding" not in source_table.joined_mapping_table.columns or "embedding" not in target_table.joined_mapping_table.columns):
             raise ValueError("Mapping tables must contain an 'embedding' column")
-    # re-index to account for dropped rows
+    # re-datastew to account for dropped rows
     target_table.joined_mapping_table = target_table.joined_mapping_table.reset_index(drop=True)
     # METHOD: Euclidean Distance based on embeddings
     if matching_method == MatchingMethod.EUCLIDEAN_EMBEDDING_DISTANCE:

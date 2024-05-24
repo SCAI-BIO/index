@@ -2,9 +2,9 @@ import logging
 
 import requests
 
-from index.db.model import Terminology, Concept, Mapping
-from index.embedding import EmbeddingModel
-from index.repository.base import BaseRepository
+from datastew.db.model import Terminology, Concept, Mapping
+from datastew.embedding import EmbeddingModel
+from datastew.repository.base import BaseRepository
 
 
 class OLSTerminologyImportTask:
@@ -34,7 +34,7 @@ class OLSTerminologyImportTask:
             logging.error(f"Failed to fetch concepts and descriptions from OLS: {str(e)}")
 
     def process(self):
-        # index starts at 0
+        # datastew starts at 0
         while self.current_page < self.num_pages - 1:
             url = f"{self.OLS_BASE_URL}ontologies/{self.ontology_id}/terms?page={self.current_page}&size={self.page_size}"
             logging.info(f"Processing page {self.current_page}/{self.num_pages}.")

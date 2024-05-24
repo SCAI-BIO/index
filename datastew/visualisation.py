@@ -9,9 +9,9 @@ from sklearn.manifold import TSNE
 import plotly.graph_objects as go
 import plotly.express as px
 
-from index.conf import COLORS_AD, COLORS_PD
-from index.mapping import MappingTable
-from index.repository.base import BaseRepository
+from datastew.conf import COLORS_AD, COLORS_PD
+from datastew.mapping import MappingTable
+from datastew.repository.base import BaseRepository
 
 
 class PlotSide(Enum):
@@ -101,10 +101,10 @@ def bar_chart_average_acc_two_distributions(dist1_fuzzy: pd.DataFrame, dist1_gpt
             "MPNet Embeddings": [avg_acc_mpnet1, avg_acc_mpnet2]}
     df = pd.DataFrame(data, index=[label1, label2])
     print(df)
-    df_melted = df.reset_index().melt(id_vars="index", var_name="Method", value_name="Accuracy")
+    df_melted = df.reset_index().melt(id_vars="datastew", var_name="Method", value_name="Accuracy")
     plt.figure(figsize=(10, 6))
     sns.set(style="whitegrid")
-    sns.barplot(x="index", y="Accuracy", hue="Method", data=df_melted)
+    sns.barplot(x="datastew", y="Accuracy", hue="Method", data=df_melted)
     plt.xlabel("")
     plt.ylabel("Average Accuracy")
     plt.title(title)
