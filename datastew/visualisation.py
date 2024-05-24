@@ -101,10 +101,10 @@ def bar_chart_average_acc_two_distributions(dist1_fuzzy: pd.DataFrame, dist1_gpt
             "MPNet Embeddings": [avg_acc_mpnet1, avg_acc_mpnet2]}
     df = pd.DataFrame(data, index=[label1, label2])
     print(df)
-    df_melted = df.reset_index().melt(id_vars="datastew", var_name="Method", value_name="Accuracy")
+    df_melted = df.reset_index().melt(id_vars="index", var_name="Method", value_name="Accuracy")
     plt.figure(figsize=(10, 6))
     sns.set(style="whitegrid")
-    sns.barplot(x="datastew", y="Accuracy", hue="Method", data=df_melted)
+    sns.barplot(x="index", y="Accuracy", hue="Method", data=df_melted)
     plt.xlabel("")
     plt.ylabel("Average Accuracy")
     plt.title(title)
