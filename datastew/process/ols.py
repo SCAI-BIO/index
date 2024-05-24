@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from datastew.db.model import Terminology, Concept, Mapping
+from datastew.repository.model import Terminology, Concept, Mapping
 from datastew.embedding import EmbeddingModel
 from datastew.repository.base import BaseRepository
 

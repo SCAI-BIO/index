@@ -1,4 +1,4 @@
-from datastew.db.model import Terminology, Concept, Mapping
+from datastew.repository.model import Terminology, Concept, Mapping
 from datastew.embedding import MPNetAdapter
 from datastew.repository.sqllite import SQLLiteRepository
 

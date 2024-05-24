@@ -83,7 +83,7 @@ A simple example how to initialize an in memory database and compute a similarit
 ```python
 from datastew.repository.sqllite import SQLLiteRepository
 from datastew.embedding import MPNetAdapter
-from datastew.db.model import Terminology, Concept, Mapping
+from datastew.repository.model import Terminology, Concept, Mapping
 
 # omit mode to create a permanent db file instead
 repository = SQLLiteRepository(mode="memory")

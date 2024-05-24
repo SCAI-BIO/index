@@ -3,9 +3,9 @@ import numpy as np
 
 from typing import Union, List
 
-from sqlalchemy import create_engine, func, cast, String
-from sqlalchemy.orm import sessionmaker, aliased
-from datastew.db.model import Base, Terminology, Concept, Mapping
+from sqlalchemy import create_engine, func
+from sqlalchemy.orm import sessionmaker
+from datastew.repository.model import Base, Terminology, Concept, Mapping
 from datastew.repository.base import BaseRepository
 
 
