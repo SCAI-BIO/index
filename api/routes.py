@@ -1,7 +1,7 @@
 import logging
 import json
 import uvicorn
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse, HTMLResponse
 
@@ -9,12 +9,6 @@ from datastew.repository.model import Terminology, Concept, Mapping
 from datastew.embedding import MPNetAdapter
 from datastew.repository.sqllite import SQLLiteRepository
 from datastew.visualisation import get_html_plot_for_current_database_state
-
-from fastapi_keycloak import FastAPIKeycloak, OIDCUser
-
-# Load configuration
-with open('config.json') as config_file:
-    config = json.load(config_file)
 
 logger = logging.getLogger("uvicorn.info")
 repository = SQLLiteRepository(mode="memory")
