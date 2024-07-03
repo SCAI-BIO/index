@@ -13,8 +13,8 @@ export class OpenApiService {
     this.openApiUrl = environment.openApiUrl;
   }
 
-  getMapping(search: string): Observable<Mapping[]> {
-    const url = `${this.openApiUrl}/mappings?text=${search}`;
+  getMapping(search: string, limit: number): Observable<Mapping[]> {
+    const url = `${this.openApiUrl}/mappings?text=${search}&limit=${limit}`;
     console.log(url);
     return this.client.post<Mapping[]>(url, {});
   }

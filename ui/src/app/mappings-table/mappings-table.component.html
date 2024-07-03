@@ -1,0 +1,31 @@
+<table mat-table [dataSource]="table_data" class="mat-elevation-z8">
+  <!--- Note that these columns can be defined in any order.
+            The actual rendered columns are set as a property on the row definition" -->
+
+  <!-- Name Column -->
+  <ng-container matColumnDef="text">
+    <th mat-header-cell *matHeaderCellDef>Name</th>
+    <td mat-cell *matCellDef="let element">{{ element.text }}</td>
+  </ng-container>
+
+  <!-- similarity Column -->
+  <ng-container matColumnDef="similarity">
+    <th mat-header-cell *matHeaderCellDef>similarity</th>
+    <td mat-cell *matCellDef="let element">{{ element.similarity }}</td>
+  </ng-container>
+
+  <!-- terminology Column -->
+  <ng-container matColumnDef="terminology">
+    <th mat-header-cell *matHeaderCellDef>terminology</th>
+    <td mat-cell *matCellDef="let element">{{ element.terminology.name }}</td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+</table>
+<mat-paginator
+  [pageSizeOptions]="[10, 20, 30]"
+  showFirstLastButtons
+  aria-label="Select page of periodic elements"
+>
+</mat-paginator>
