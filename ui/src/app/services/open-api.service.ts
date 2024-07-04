@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import {HttpClient} from "@angular/common/http";
+import {Injectable} from '@angular/core';
+import {HttpClient, HttpEvent} from "@angular/common/http";
 import {environment} from "../../environments/environment";
 import {Observable} from "rxjs";
 import {Mapping} from "../models";
@@ -13,6 +13,14 @@ export class OpenApiService {
 
   constructor(private client: HttpClient) {
 
+  }
+
+  upload(file: File): Observable<HttpEvent<any>> {
+    const formData: FormData = new FormData();
+
+    formData.append('file', file);
+
+    return  this.client.post<any>(`${this.openApiUrl}/upload`, formData);
   }
 
   getMappings(search: string): Observable<Mapping[]> {
