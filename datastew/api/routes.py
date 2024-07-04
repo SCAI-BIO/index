@@ -1,10 +1,13 @@
 import logging
+import os
+import tempfile
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse, HTMLResponse
 
+from datastew import DataDictionarySource
 from datastew.repository.model import Terminology, Concept, Mapping
 from datastew.embedding import MPNetAdapter
 from datastew.repository.sqllite import SQLLiteRepository
@@ -155,10 +158,10 @@ async def create_or_update_mapping(concept_id: str, text: str):
 
 
 @app.post("/mappings", tags=["mappings"])
-async def get_closest_mappings_for_text(text: str):
+async def get_closest_mappings_for_text(text: str, limit: int = 5):
     embedding = embedding_model.get_embedding(text).tolist()
     print(embedding)
-    closest_mappings, similarities = repository.get_closest_mappings(embedding)
+    closest_mappings, similarities = repository.get_closest_mappings(embedding, limit)
     response_data = []
     for mapping, similarity in zip(closest_mappings, similarities):
         concept = mapping.concept
@@ -177,6 +180,51 @@ async def get_closest_mappings_for_text(text: str):
         })
     return response_data
 
+
+# Endpoint to get mappings for a data dictionary source
+@app.post("/mappings/dict", tags=["mappings"], description="Get mappings for a data dictionary source.")
+async def get_closest_mappings_for_dictionary(file: UploadFile = File(...), variable_field: str = 'variable', description_field: str = 'description'):
+    try:
+        # Determine file extension and create a temporary file with the correct extension
+        _, file_extension = os.path.splitext(file.filename)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
+            tmp_file.write(await file.read())
+            tmp_file_path = tmp_file.name
+
+        # Initialize DataDictionarySource with the temporary file path
+        data_dict_source = DataDictionarySource(file_path=tmp_file_path, variable_field=variable_field, description_field=description_field)
+        df = data_dict_source.to_dataframe()
+
+        response = {}
+        for _, row in df.iterrows():
+            variable = row['variable']
+            description = row['description']
+            embedding = embedding_model.get_embedding(description)
+            closest_mappings, similarities = repository.get_closest_mappings(embedding, limit=5)
+            mappings_list = []
+            for mapping, similarity in zip(closest_mappings, similarities):
+                concept = mapping.concept
+                terminology = concept.terminology
+                mappings_list.append({
+                    "concept": {
+                        "id": concept.id,
+                        "name": concept.name,
+                        "terminology": {
+                            "id": terminology.id,
+                            "name": terminology.name
+                        }
+                    },
+                    "text": mapping.text,
+                    "similarity": similarity
+                })
+            response[variable] = mappings_list
+
+        # Clean up temporary file
+        os.remove(tmp_file_path)
+
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5000)
