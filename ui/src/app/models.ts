@@ -10,3 +10,9 @@ export interface Mapping {
     similarity: number;
   };
 }
+
+export interface MappingDict {
+  variable: string;
+  description: string;
+  mappings: Mapping[];
+}

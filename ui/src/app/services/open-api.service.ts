@@ -1,7 +1,7 @@
-import {HttpClient, HttpEvent} from '@angular/common/http';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Mapping } from '../models';
+import { Mapping, MappingDict } from '../models';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -19,11 +19,14 @@ export class OpenApiService {
     return this.client.post<Mapping[]>(url, {});
   }
 
-  upload(file: File): Observable<HttpEvent<any>> {
+  upload(file: File): Observable<MappingDict[]> {
     const formData: FormData = new FormData();
 
     formData.append('file', file);
 
-    return  this.client.post<any>(`${this.openApiUrl}/upload`, formData);
+    return this.client.post<MappingDict[]>(
+      `${this.openApiUrl}/mappings/dict`,
+      formData
+    );
   }
 }

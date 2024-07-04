@@ -21,3 +21,11 @@
     />
   </div>
 </mat-form-field>
+
+@if (mapping_dict$ | async; as data) {
+<app-mappings-table-dict [datasource]="data"></app-mappings-table-dict>
+} @else { @if (isLoadingData) {
+<mat-spinner></mat-spinner>
+} } @if (uploadError) {
+<div class="errorText">{{ uploadError.error.detail | json }}</div>
+}

@@ -17,3 +17,9 @@ mat-form-field {
 .mat-mdc-form-field {
   display: block;
 }
+
+.errorText{
+  color: black;
+  background-color: red;
+  max-width: fit-content;
+}
