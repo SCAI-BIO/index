@@ -162,11 +162,11 @@ async def get_closest_mappings_for_text(text: str, limit: int = 5):
     embedding = embedding_model.get_embedding(text).tolist()
     print(embedding)
     closest_mappings, similarities = repository.get_closest_mappings(embedding, limit)
-    response_data = []
+    mappings = []
     for mapping, similarity in zip(closest_mappings, similarities):
         concept = mapping.concept
         terminology = concept.terminology
-        response_data.append({
+        mappings.append({
             "concept": {
                 "id": concept.id,
                 "name": concept.name,
@@ -178,7 +178,7 @@ async def get_closest_mappings_for_text(text: str, limit: int = 5):
             "text": mapping.text,
             "similarity": similarity
         })
-    return response_data
+    return mappings
 
 
 # Endpoint to get mappings for a data dictionary source
@@ -195,7 +195,7 @@ async def get_closest_mappings_for_dictionary(file: UploadFile = File(...), vari
         data_dict_source = DataDictionarySource(file_path=tmp_file_path, variable_field=variable_field, description_field=description_field)
         df = data_dict_source.to_dataframe()
 
-        response = {}
+        response = []
         for _, row in df.iterrows():
             variable = row['variable']
             description = row['description']
@@ -217,7 +217,11 @@ async def get_closest_mappings_for_dictionary(file: UploadFile = File(...), vari
                     "text": mapping.text,
                     "similarity": similarity
                 })
-            response[variable] = mappings_list
+            response.append({
+                "variable": variable,
+                "description": description,
+                "mappings": mappings_list
+            })
 
         # Clean up temporary file
         os.remove(tmp_file_path)
