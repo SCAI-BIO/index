@@ -1,6 +1,6 @@
 import logging
-import json
 import uvicorn
+
 from fastapi import FastAPI, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse, HTMLResponse
@@ -11,7 +11,7 @@ from datastew.repository.sqllite import SQLLiteRepository
 from datastew.visualisation import get_html_plot_for_current_database_state
 
 logger = logging.getLogger("uvicorn.info")
-repository = SQLLiteRepository(mode="memory")
+repository = SQLLiteRepository(mode="disk", path="snomed.db")
 embedding_model = MPNetAdapter()
 db_plot_html = None
 
@@ -55,6 +55,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/", include_in_schema=False)
 def swagger_redirect():

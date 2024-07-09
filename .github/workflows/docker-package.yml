@@ -1,4 +1,4 @@
-name: Python package
+name: Docker package
 
 on:
   release:
@@ -28,3 +28,4 @@ jobs:
         tags: |
           ghcr.io/scai-bio/index/backend:latest
           ghcr.io/scai-bio/index/backend:${{ steps.version.outputs.VERSION }}
+    - name: Build & push frontend
