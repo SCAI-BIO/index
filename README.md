@@ -22,8 +22,7 @@ Navigate to [localhost:5000](http://localhost:5000) to access the backend.
 
 ```bash
 cd client
-pip install -r requirements.txt
-uvicorn routes:app --reload --port 5000
+ng serve
 ```
 
 Navigate to [localhost:4200](http://localhost:4200) to access the frontend.
