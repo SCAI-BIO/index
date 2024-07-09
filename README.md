@@ -5,15 +5,6 @@
 
 INDEX is an intelligent data steward toolbox that leverages Large Language Model embeddings for automated Data-Harmonization.
 
-## Table of Contents
-- [Introduction](#introduction)
-- [Installation](#installation)
-  - [Local Development Server](#local-development-server)
-    - [Starting the backend](#starting-the-backend)
-    - [Starting the frontend](#starting-the-frontend)
-  - [Docker](#docker)
-- [Configuration](#configuration)
-
 ## Introduction
 
 INDEX uses vector embeddings from variable descriptions to suggest mappings for datasets based on their semantic similarity. Mappings are stored with their vector representations in a knowledge base, where they can be used for subsequent harmonisation tasks, potentially improving suggestions with each iteration. The tool is designed to be configurable and extendable, adapting for specific use-cases through customizable models and databases.
