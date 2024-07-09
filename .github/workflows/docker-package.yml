@@ -20,12 +20,21 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Build & push backend
+    - name: Build & push api
       uses: docker/build-push-action@v2
       with:
-        file: Dockerfile
+        context: ./api
+        file: ./api/Dockerfile
         push: true
         tags: |
-          ghcr.io/scai-bio/index/backend:latest
-          ghcr.io/scai-bio/index/backend:${{ steps.version.outputs.VERSION }}
-    - name: Build & push frontend
+          ghcr.io/scai-bio/index/api:latest
+          ghcr.io/scai-bio/index/api:${{ steps.version.outputs.VERSION }}
+    - name: Build & push client
+      uses: docker/build-push-action@v2
+      with:
+        context: ./client
+        file: ./client/Dockerfile.prod
+        push: true
+        tags: |
+          ghcr.io/scai-bio/index/api:latest
+          ghcr.io/scai-bio/index/api:${{ steps.version.outputs.VERSION }}
