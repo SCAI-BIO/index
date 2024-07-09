@@ -1,13 +1,8 @@
 # INDEX – the Intelligent Data Steward Toolbox
 
-![example workflow](https://github.com/SCAI-BIO/index/actions/workflows/tests.yml/badge.svg)
 ![GitHub Release](https://img.shields.io/github/v/release/SCAI-BIO/index)
 
 INDEX is an intelligent data steward toolbox that leverages Large Language Model embeddings for automated Data-Harmonization.
-
-## Introduction
-
-INDEX uses vector embeddings from variable descriptions to suggest mappings for datasets based on their semantic similarity. Mappings are stored with their vector representations in a knowledge base, where they can be used for subsequent harmonisation tasks, potentially improving suggestions with each iteration. The tool is designed to be configurable and extendable, adapting for specific use-cases through customizable models and databases.
 
 ## Installation
 
