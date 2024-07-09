@@ -1,0 +1,11 @@
+tzdata==2023.3
+wheel==0.37.1
+aiofiles~=0.7.0
+uvicorn>=0.15.0
+python-multipart
+fastapi~=0.87.0
+starlette~=0.21.0
+requests~=2.31.0
+pydantic~=1.10.14
+fastapi_keycloak
+datastew==0.2.0

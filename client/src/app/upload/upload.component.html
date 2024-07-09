@@ -1,0 +1,31 @@
+<mat-form-field>
+  <div>
+    <mat-toolbar>
+      <input matInput [value]="fileName" />
+
+      <button
+        mat-button
+        color="primary"
+        [disabled]="!currentFile"
+        (click)="uploadFile()"
+      >
+        Upload
+      </button>
+    </mat-toolbar>
+
+    <input
+      type="file"
+      id="fileInput"
+      (change)="onFileSelected($event)"
+      name="fileInput"
+    />
+  </div>
+</mat-form-field>
+
+@if (mapping_dict$ | async; as data) {
+<app-mappings-table-dict [datasource]="data"></app-mappings-table-dict>
+} @else { @if (isLoadingData) {
+<mat-spinner></mat-spinner>
+} } @if (uploadError) {
+<div class="errorText">{{ uploadError.error.detail | json }}</div>
+}
