@@ -15,7 +15,7 @@
           "options": {
             "outputPath": "dist/client",
             "index": "src/index.html",
-            "main": "src/main.ts",
+            "browser": "src/main.ts",    // Corrected property name here
             "polyfills": [
               "zone.js"
             ],
@@ -44,24 +44,7 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all",
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ],
-              "optimization": true,
-              "sourceMap": false,
-              "extractCss": true,
-              "namedChunks": false,
-              "aot": true,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
-              "allowedCommonJsDependencies": [
-                "plotly.js-dist-min"
-              ]
+              "outputHashing": "all"
             },
             "development": {
               "optimization": false,
