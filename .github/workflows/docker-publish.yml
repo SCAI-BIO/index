@@ -36,5 +36,5 @@ jobs:
         file: ./client/Dockerfile.prod
         push: true
         tags: |
-          ghcr.io/scai-bio/index/api:latest
-          ghcr.io/scai-bio/index/api:${{ steps.version.outputs.VERSION }}
+          ghcr.io/scai-bio/index/client:latest
+          ghcr.io/scai-bio/index/client:${{ steps.version.outputs.VERSION }}
