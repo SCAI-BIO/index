@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MappingsTableComponent } from './mappings-table.component';
 
 describe('MappingsTableComponent', () => {
@@ -8,9 +8,8 @@ describe('MappingsTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MappingsTableComponent]
-    })
-    .compileComponents();
+      imports: [BrowserAnimationsModule, MappingsTableComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(MappingsTableComponent);
     component = fixture.componentInstance;

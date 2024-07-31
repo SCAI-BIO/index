@@ -1,5 +1,6 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UploadComponent } from './upload.component';
 
 describe('UploadComponent', () => {
@@ -8,9 +9,12 @@ describe('UploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UploadComponent]
-    })
-    .compileComponents();
+      imports: [
+        BrowserAnimationsModule,
+        HttpClientTestingModule,
+        UploadComponent,
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(UploadComponent);
     component = fixture.componentInstance;

@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { MappingsTableDictComponent } from './mappings-table-dict.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MappingsTableComponentDict } from './mappings-table-dict.component';
 
 describe('MappingsTableDictComponent', () => {
-  let component: MappingsTableDictComponent;
-  let fixture: ComponentFixture<MappingsTableDictComponent>;
+  let component: MappingsTableComponentDict;
+  let fixture: ComponentFixture<MappingsTableComponentDict>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MappingsTableDictComponent]
-    })
-    .compileComponents();
+      imports: [BrowserAnimationsModule, MappingsTableComponentDict],
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(MappingsTableDictComponent);
+    fixture = TestBed.createComponent(MappingsTableComponentDict);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
