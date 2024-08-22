@@ -4,18 +4,16 @@ import tempfile
 import time
 
 import uvicorn
-from datastew import DataDictionarySource, BaseRepository
+from datastew import DataDictionarySource
+from datastew.embedding import MPNetAdapter
 from datastew.process.ols import OLSTerminologyImportTask
 from datastew.repository import WeaviateRepository
-
+from datastew.repository.model import Terminology, Concept, Mapping
+from datastew.visualisation import get_plot_for_current_database_state
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from starlette.background import BackgroundTasks
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse, HTMLResponse
-
-from datastew.repository.model import Terminology, Concept, Mapping
-from datastew.embedding import MPNetAdapter
-from datastew.visualisation import get_plot_for_current_database_state
 
 app = FastAPI(
     title="INDEX",
@@ -50,10 +48,11 @@ app = FastAPI(
 
 
 def connect_to_remote_weaviate_repository():
+    weaviate_url = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
     retries = 5
     for i in range(retries):
         try:
-            return WeaviateRepository(mode="remote", path="http://weaviate:8080")
+            return WeaviateRepository(mode="remote", path=weaviate_url)
         except Exception as e:
             logger.info(f"Attempt {i + 1} failed: {e}")
             time.sleep(5)

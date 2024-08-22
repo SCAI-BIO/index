@@ -15,7 +15,7 @@ services:
     image: index-api
     build:
       context: ./api
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "5000:80"
     depends_on:
