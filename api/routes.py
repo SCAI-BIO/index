@@ -107,13 +107,19 @@ async def get_all_terminologies():
 
 
 @app.put("/terminologies/{id}", tags=["terminologies"])
-async def create_or_update_terminology(id: str, name: str):
+async def create_terminology(id: str, name: str):
     try:
         terminology = Terminology(name=name, id=id)
         repository.store(terminology)
-        return {"message": f"Terminology {id} created or updated successfully"}
+        return {"message": f"Terminology {id} created successfully"}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create or update terminology: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to create terminology: {str(e)}")
+    
+
+@app.get("/models", tags=["models"])
+async def get_all_models():
+    sentence_embedders = repository.get_all_sentence_embedders()
+    return sentence_embedders
 
 
 @app.get("/concepts", tags=["concepts"])
@@ -123,17 +129,26 @@ async def get_all_concepts():
 
 
 @app.put("/concepts/{id}", tags=["concepts"])
-async def create_or_update_concept(id: str, terminology_id: str, name: str):
+async def create_concept(concept_id: str, concept_name: str, terminology_name: str):
     try:
-        terminology = repository.session.query(Terminology).filter(Terminology.id == terminology_id).first()
-        if not terminology:
-            raise HTTPException(status_code=404, detail=f"Terminology with id {terminology_id} not found")
-
-        concept = Concept(terminology=terminology, name=name, id=id)
+        if not repository._terminology_exists(terminology_name):
+            raise HTTPException(status_code=404, detail=f"Terminology {terminology_name} not found")
+        result = repository.client.query.get(
+            "Terminology",
+            ["name", "_additional { id }"]
+        ).with_where({
+            "path": "name",
+            "operator": "Equal",
+            "valueText": terminology_name
+        }).do()
+        terminology_data = result["data"]["Get"]["Terminology"][0]
+        terminology_id = terminology_data["_additional"]["id"]
+        terminology = Terminology(name=terminology_name, id=terminology_id)
+        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=concept_id)
         repository.store(concept)
-        return {"message": f"Concept {id} created or updated successfully"}
+        return {"message": f"Concept {concept_id} created successfully"}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create or update concept: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to create concept: {str(e)}")
 
 
 @app.get("/mappings", tags=["mappings"])
@@ -143,33 +158,58 @@ async def get_all_mappings():
 
 
 @app.put("/concepts/{id}/mappings", tags=["concepts", "mappings"])
-async def create_concept_and_attach_mapping(id: str, terminology_id: str, concept_name: str, text: str):
+async def create_concept_and_attach_mapping(concept_id: str,  concept_name: str, terminology_name, text: str):
     try:
-        terminology = repository.session.query(Terminology).filter(Terminology.id == terminology_id).first()
-        if not terminology:
-            raise HTTPException(status_code=404, detail=f"Terminology with id {terminology_id} not found")
-        concept = Concept(terminology=terminology, name=concept_name, id=id)
+        if not repository._terminology_exists(terminology_name):
+            raise HTTPException(status_code=404, detail=f"Terminology {terminology_name} not found")
+        result = repository.client.query.get(
+            "Terminology",
+            ["name", "_additional { id }"]
+        ).with_where({
+            "path": "name",
+            "operator": "Equal",
+            "valueText": terminology_name
+        }).do()
+        terminology_data = result["data"]["Get"]["Terminology"][0]
+        terminology_id = terminology_data["_additional"]["id"]
+        terminology = Terminology(name=terminology_name, id=terminology_id)
+        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=concept_id)
         repository.store(concept)
         embedding = embedding_model.get_embedding(text)
-        mapping = Mapping(concept=concept, text=text, embedding=embedding)
+        model_name = embedding_model.get_model_name()
+        mapping = Mapping(concept=concept, text=text, embedding=embedding, sentence_embedder=model_name)
         repository.store(mapping)
-        return {"message": f"Concept {id} created or updated successfully"}
+        return {"message": f"Concept {concept_id} created successfully"}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create or update concept: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to create concept: {str(e)}")
 
 
 @app.put("/mappings/", tags=["mappings"])
-async def create_or_update_mapping(concept_id: str, text: str):
+async def create_mapping(concept_id: str, text: str):
     try:
-        concept = repository.session.query(Concept).filter(Concept.id == concept_id).first()
-        if not concept:
+        if not repository._concept_exists(concept_id=concept_id):
             raise HTTPException(status_code=404, detail=f"Concept with id {concept_id} not found")
+        result = repository.client.query.get(
+            "Concept",
+            ["conceptID", "prefLabel", "hasTerminology { ... on Terminology { _additional { id } name } }"]
+        ).with_where({
+            "path": "conceptID",
+            "operator": "Equal",
+            "valueText": concept_id
+        }).do()
+        terminology_data = result["data"]["get"]["Concept"][0]["hasTerminology"]
+        terminology_name = terminology_data["name"]
+        terminology_id = terminology_data["_additional"]["id"]
+        terminology = Terminology(terminology_name, terminology_id)
+        concept_name = result["data"]["Get"]["Concept"][0]["prefLabel"]
+        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=concept_id)
         embedding = embedding_model.get_embedding(text)
-        mapping = Mapping(concept=concept, text=text, embedding=embedding)
+        model_name = embedding_model.get_model_name()
+        mapping = Mapping(concept=concept, text=text, embedding=embedding, sentence_embedder=model_name)
         repository.store(mapping)
-        return {"message": f"Mapping created or updated successfully"}
+        return {"message": "Mapping created successfully"}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to create or update mapping: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Failed to create mapping: {str(e)}")
 
 
 @app.post("/mappings", tags=["mappings"])
