@@ -129,7 +129,7 @@ async def get_all_concepts():
 
 
 @app.put("/concepts/{id}", tags=["concepts"])
-async def create_concept(concept_id: str, concept_name: str, terminology_name: str):
+async def create_concept(id: str, concept_name: str, terminology_name: str):
     try:
         if not repository._terminology_exists(terminology_name):
             raise HTTPException(status_code=404, detail=f"Terminology {terminology_name} not found")
@@ -144,9 +144,9 @@ async def create_concept(concept_id: str, concept_name: str, terminology_name: s
         terminology_data = result["data"]["Get"]["Terminology"][0]
         terminology_id = terminology_data["_additional"]["id"]
         terminology = Terminology(name=terminology_name, id=terminology_id)
-        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=concept_id)
+        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=id)
         repository.store(concept)
-        return {"message": f"Concept {concept_id} created successfully"}
+        return {"message": f"Concept {id} created successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to create concept: {str(e)}")
 
@@ -158,7 +158,7 @@ async def get_all_mappings():
 
 
 @app.put("/concepts/{id}/mappings", tags=["concepts", "mappings"])
-async def create_concept_and_attach_mapping(concept_id: str,  concept_name: str, terminology_name, text: str):
+async def create_concept_and_attach_mapping(id: str,  concept_name: str, terminology_name, text: str):
     try:
         if not repository._terminology_exists(terminology_name):
             raise HTTPException(status_code=404, detail=f"Terminology {terminology_name} not found")
@@ -173,13 +173,13 @@ async def create_concept_and_attach_mapping(concept_id: str,  concept_name: str,
         terminology_data = result["data"]["Get"]["Terminology"][0]
         terminology_id = terminology_data["_additional"]["id"]
         terminology = Terminology(name=terminology_name, id=terminology_id)
-        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=concept_id)
+        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=id)
         repository.store(concept)
         embedding = embedding_model.get_embedding(text)
         model_name = embedding_model.get_model_name()
         mapping = Mapping(concept=concept, text=text, embedding=embedding, sentence_embedder=model_name)
         repository.store(mapping)
-        return {"message": f"Concept {concept_id} created successfully"}
+        return {"message": f"Concept {id} created successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to create concept: {str(e)}")
 
