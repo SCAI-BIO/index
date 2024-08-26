@@ -131,19 +131,7 @@ async def get_all_concepts():
 @app.put("/concepts/{id}", tags=["concepts"])
 async def create_concept(id: str, concept_name: str, terminology_name: str):
     try:
-        if not repository._terminology_exists(terminology_name):
-            raise HTTPException(status_code=404, detail=f"Terminology {terminology_name} not found")
-        result = repository.client.query.get(
-            "Terminology",
-            ["name", "_additional { id }"]
-        ).with_where({
-            "path": "name",
-            "operator": "Equal",
-            "valueText": terminology_name
-        }).do()
-        terminology_data = result["data"]["Get"]["Terminology"][0]
-        terminology_id = terminology_data["_additional"]["id"]
-        terminology = Terminology(name=terminology_name, id=terminology_id)
+        terminology = repository.get_terminology(terminology_name)
         concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=id)
         repository.store(concept)
         return {"message": f"Concept {id} created successfully"}
@@ -160,19 +148,7 @@ async def get_all_mappings():
 @app.put("/concepts/{id}/mappings", tags=["concepts", "mappings"])
 async def create_concept_and_attach_mapping(id: str,  concept_name: str, terminology_name, text: str):
     try:
-        if not repository._terminology_exists(terminology_name):
-            raise HTTPException(status_code=404, detail=f"Terminology {terminology_name} not found")
-        result = repository.client.query.get(
-            "Terminology",
-            ["name", "_additional { id }"]
-        ).with_where({
-            "path": "name",
-            "operator": "Equal",
-            "valueText": terminology_name
-        }).do()
-        terminology_data = result["data"]["Get"]["Terminology"][0]
-        terminology_id = terminology_data["_additional"]["id"]
-        terminology = Terminology(name=terminology_name, id=terminology_id)
+        terminology = repository.get_terminology(terminology_name)
         concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=id)
         repository.store(concept)
         embedding = embedding_model.get_embedding(text)
@@ -187,22 +163,7 @@ async def create_concept_and_attach_mapping(id: str,  concept_name: str, termino
 @app.put("/mappings/", tags=["mappings"])
 async def create_mapping(concept_id: str, text: str):
     try:
-        if not repository._concept_exists(concept_id=concept_id):
-            raise HTTPException(status_code=404, detail=f"Concept with id {concept_id} not found")
-        result = repository.client.query.get(
-            "Concept",
-            ["conceptID", "prefLabel", "hasTerminology { ... on Terminology { _additional { id } name } }"]
-        ).with_where({
-            "path": "conceptID",
-            "operator": "Equal",
-            "valueText": concept_id
-        }).do()
-        terminology_data = result["data"]["get"]["Concept"][0]["hasTerminology"]
-        terminology_name = terminology_data["name"]
-        terminology_id = terminology_data["_additional"]["id"]
-        terminology = Terminology(terminology_name, terminology_id)
-        concept_name = result["data"]["Get"]["Concept"][0]["prefLabel"]
-        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=concept_id)
+        concept = repository.get_concept(concept_id)
         embedding = embedding_model.get_embedding(text)
         model_name = embedding_model.get_model_name()
         mapping = Mapping(concept=concept, text=text, embedding=embedding, sentence_embedder=model_name)
@@ -213,9 +174,10 @@ async def create_mapping(concept_id: str, text: str):
 
 
 @app.post("/mappings", tags=["mappings"])
-async def get_closest_mappings_for_text(text: str, limit: int = 5):
+async def get_closest_mappings_for_text(text: str, terminology_name: str = "SNOMED CT",
+                                        sentence_embedder: str = "sentence-transformers/all-mpnet-base-v2", limit: int = 5):
     embedding = embedding_model.get_embedding(text).tolist()
-    closest_mappings = repository.get_closest_mappings_with_similarities(embedding, limit)
+    closest_mappings = repository.get_terminology_and_model_specific_closest_mappings(embedding, terminology_name, sentence_embedder, limit)
     mappings = []
     for mapping, similarity in closest_mappings:
         concept = mapping.concept
@@ -300,4 +262,4 @@ async def import_snomed_ct(background_tasks: BackgroundTasks):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=5001)
