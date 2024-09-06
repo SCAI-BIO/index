@@ -80,6 +80,11 @@ def swagger_redirect():
     return RedirectResponse(url='/docs')
 
 
+@app.get("/v1", include_in_schema=False)
+def swagger_redirect():
+    return RedirectResponse(url='/docs')
+
+
 @app.get("/version", tags=["info"])
 def get_current_version():
     return app.version
