@@ -178,33 +178,30 @@ async def get_closest_mappings_for_text(text: str,
                                         terminology_name: str = "SNOMED CT",
                                         model: str = "sentence-transformers/all-mpnet-base-v2",
                                         limit: int = 5):
-    if model == "text-embedding-ada-002":
-        embedding_model = GPT4Adapter(model)
-    elif model == "sentence-transformers/all-mpnet-base-v2":
-        embedding_model = MPNetAdapter(model)
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported embedding model.")
-    
-    embedding = embedding_model.get_embedding(text).tolist()
-    closest_mappings = repository.get_terminology_and_model_specific_closest_mappings(embedding, terminology_name, model, limit)
-    mappings = []
-    for mapping, similarity in closest_mappings:
-        concept = mapping.concept
-        terminology = concept.terminology
-        mappings.append({
-            "concept": {
-                "id": concept.concept_identifier,
-                "name": concept.pref_label,
-                "terminology": {
-                    "id": terminology.id,
-                    "name": terminology.name
-                }
-            },
-            "text": mapping.text,
-            "similarity": similarity
-        })
+    try:
+        embedding_model = MPNetAdapter(model)   
+        embedding = embedding_model.get_embedding(text).tolist()
+        closest_mappings = repository.get_terminology_and_model_specific_closest_mappings(embedding, terminology_name, model, limit)
+        mappings = []
+        for mapping, similarity in closest_mappings:
+            concept = mapping.concept
+            terminology = concept.terminology
+            mappings.append({
+                "concept": {
+                    "id": concept.concept_identifier,
+                    "name": concept.pref_label,
+                    "terminology": {
+                        "id": terminology.id,
+                        "name": terminology.name
+                    }
+                },
+                "text": mapping.text,
+                "similarity": similarity
+            })
 
-    return mappings
+        return mappings
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to get closest mappings: {str(e)}")
 
 
 # Endpoint to get mappings for a data dictionary source
@@ -215,13 +212,7 @@ async def get_closest_mappings_for_dictionary(file: UploadFile = File(...),
                                               variable_field: str = "variable",
                                               description_field: str = "description"):
     try:
-        if model == "text-embedding-ada-002":
-            embedding_model = GPT4Adapter(model)
-        elif model == "sentence-transformers/all-mpnet-base-v2":
-            embedding_model = MPNetAdapter(model)
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported embedding model.")
-        
+        embedding_model = MPNetAdapter(model)
         # Determine file extension and create a temporary file with the correct extension
         if file.filename is not None:
             file_extension = os.path.splitext(file.filename)[1].lower()
