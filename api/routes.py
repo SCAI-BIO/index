@@ -5,12 +5,12 @@ import time
 
 import uvicorn
 from datastew import DataDictionarySource
-from datastew.embedding import GPT4Adapter, MPNetAdapter
+from datastew.embedding import MPNetAdapter
 from datastew.process.ols import OLSTerminologyImportTask
 from datastew.repository import WeaviateRepository
 from datastew.repository.model import Concept, Mapping, Terminology
 from datastew.visualisation import get_plot_for_current_database_state
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, UploadFile, Form
 from starlette.background import BackgroundTasks
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, RedirectResponse
@@ -219,10 +219,10 @@ async def get_closest_mappings_for_text(text: str,
 # Endpoint to get mappings for a data dictionary source
 @app.post("/mappings/dict", tags=["mappings"], description="Get mappings for a data dictionary source.")
 async def get_closest_mappings_for_dictionary(file: UploadFile = File(...), 
-                                              model: str = "sentence-transformers/all-mpnet-base-v2", 
-                                              terminology_name: str = "SNOMED CT",
-                                              variable_field: str = "variable",
-                                              description_field: str = "description"):
+                                              model: str = Form("sentence-transformers/all-mpnet-base-v2"), 
+                                              terminology_name: str = Form("SNOMED CT"),
+                                              variable_field: str = Form("variable"),
+                                              description_field: str = Form("description")):
     try:
         embedding_model = MPNetAdapter(model)
         # Determine file extension and create a temporary file with the correct extension
