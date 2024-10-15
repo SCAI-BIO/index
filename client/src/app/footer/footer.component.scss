@@ -1,0 +1,26 @@
+:host {
+    display: block;
+    background: #e6e6e6;
+    padding-top: 30px;
+    padding-left: 40px;
+  }
+  
+  :host .copyright {
+    text-align: center;
+    border-top: 1px solid rgba(167, 83, 83, 0.2);
+    padding-top: 30px;
+    padding-bottom: 30px;
+    font-weight: 400;
+    font-size: 12px;
+    letter-spacing: 0.88px;
+    text-transform: uppercase;
+  }
+  
+  .main-headers {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .main-headers .col-12 {
+    flex: 1;
+  }
