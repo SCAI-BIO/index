@@ -8,10 +8,7 @@ import { MappingDict } from '../models';
 import { Observable, catchError, tap } from 'rxjs';
 import { AsyncPipe, JsonPipe, NgIf } from '@angular/common';
 import { MappingsTableComponentDict } from '../mappings-table-dict/mappings-table-dict.component';
-import {
-  MatProgressSpinner,
-  ProgressSpinnerMode,
-} from '@angular/material/progress-spinner';
+import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-upload',

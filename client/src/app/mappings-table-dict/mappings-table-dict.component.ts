@@ -1,10 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ViewChild,
-  Input,
-  OnInit,
-} from '@angular/core';
+import { Component, ViewChild, Input, OnInit } from '@angular/core';
 import { Mapping, MappingDict } from '../models';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
