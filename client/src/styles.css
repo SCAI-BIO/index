@@ -1,4 +1,145 @@
-/* You can add global styles to this file, and also import other style files */
+/* The font defaults to system default */
+html,
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* Default styles for larger screens */
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    font-size: 1rem;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+h1 {
+    font-size: 2.5rem;
+    /* 40px */
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 2rem;
+    /* 32px */
+    margin-bottom: 18px;
+}
+
+h3 {
+    font-size: 1.75rem;
+    /* 28px */
+    margin-bottom: 16px;
+}
+
+h4 {
+    font-size: 1.5rem;
+    /* 24px */
+    margin-bottom: 14px;
+}
+
+h5 {
+    font-size: 1.25rem;
+    /* 20px */
+    margin-bottom: 12px;
+}
+
+h6 {
+    font-size: 1rem;
+    /* 16px */
+    margin-bottom: 10px;
+}
+
+/* For screens smaller than 1199px (typically tablets) */
+@media screen and (max-width: 1199px) {
+    html {
+        font-size: 15px;
+    }
+
+    .container {
+        width: 90%;
+        padding: 15px;
+        font-size: 1rem;
+    }
+
+    h1 {
+        font-size: 2.25rem;
+        /* 36px */
+    }
+
+    h2 {
+        font-size: 1.875rem;
+        /* 30px */
+    }
+
+    h3 {
+        font-size: 1.625rem;
+        /* 26px */
+    }
+
+    h4 {
+        font-size: 1.375rem;
+        /* 22px */
+    }
+
+    h5 {
+        font-size: 1.125rem;
+        /* 18px */
+    }
+
+    h6 {
+        font-size: 1rem;
+        /* 16px */
+    }
+}
+
+/* For screens smaller than 767px (typically mobile devices) */
+@media screen and (max-width: 767px) {
+    html {
+        font-size: 14px;
+    }
+
+    .container {
+        width: 100%;
+        padding: 10px;
+        font-size: 0.875rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+        /* 32px */
+    }
+
+    h2 {
+        font-size: 1.75rem;
+        /* 28px */
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        /* 24px */
+    }
+
+    h4 {
+        font-size: 1.25rem;
+        /* 20px */
+    }
+
+    h5 {
+        font-size: 1rem;
+        /* 16px */
+    }
+
+    h6 {
+        font-size: 0.875rem;
+        /* 14px */
+    }
+}
