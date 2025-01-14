@@ -10,7 +10,7 @@ from datastew.process.ols import OLSTerminologyImportTask
 from datastew.repository import WeaviateRepository
 from datastew.repository.model import Concept, Mapping, Terminology
 from datastew.visualisation import get_plot_for_current_database_state
-from fastapi import FastAPI, File, HTTPException, UploadFile, Form
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from starlette.background import BackgroundTasks
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, RedirectResponse
@@ -218,57 +218,69 @@ async def get_closest_mappings_for_text(text: str,
 
 # Endpoint to get mappings for a data dictionary source
 @app.post("/mappings/dict", tags=["mappings"], description="Get mappings for a data dictionary source.")
-async def get_closest_mappings_for_dictionary(file: UploadFile = File(...), 
-                                              model: str = Form("sentence-transformers/all-mpnet-base-v2"), 
-                                              terminology_name: str = Form("SNOMED CT"),
-                                              variable_field: str = Form("variable"),
-                                              description_field: str = Form("description")):
+async def get_closest_mappings_for_dictionary(
+    file: UploadFile = File(...), 
+    model: str = Form("sentence-transformers/all-mpnet-base-v2"), 
+    terminology_name: str = Form("SNOMED CT"),
+    variable_field: str = Form("variable"),
+    description_field: str = Form("description"),
+    limit: int = 5
+):
     try:
         embedding_model = MPNetAdapter(model)
-        # Determine file extension and create a temporary file with the correct extension
-        if file.filename is not None:
-            file_extension = os.path.splitext(file.filename)[1].lower()
-        else:
-            raise HTTPException(status_code=400, detail="Invalid file type. The file must have a suffix.")
+        if not file or not file.filename:
+            raise HTTPException(status_code=400, detail="No file was provided. Please upload a valid file.")
+
+        # Check for a valid file extension
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        if not file_extension:
+            raise HTTPException(status_code=400, detail="The uploaded file must have a valid extension.")
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
             tmp_file.write(await file.read())
             tmp_file_path = tmp_file.name
 
-        # Initialize DataDictionarySource with the temporary file path
-        data_dict_source = DataDictionarySource(file_path=tmp_file_path, variable_field=variable_field,
-                                                description_field=description_field)
+        # Initialize DataDictionarySource
+        data_dict_source = DataDictionarySource(
+            file_path=tmp_file_path,
+            variable_field=variable_field,
+            description_field=description_field
+        )
         df = data_dict_source.to_dataframe()
 
+        # Collect descriptions and their corresponding variables
+        descriptions = df[description_field].to_list()
+        variables = df[variable_field].to_list()
+
+        # Generate embeddings for all descriptions in batches
+        embeddings = embedding_model.get_embeddings(descriptions)
+
+        # Process embeddings to get closes mappings
         response = []
-        for _, row in df.iterrows():
-            variable = row['variable']
-            description = row['description']
-            embedding_model = MPNetAdapter(model)
-            embedding = embedding_model.get_embedding(description)
+        for variable, description, embedding in zip(variables, descriptions, embeddings):
             closest_mappings = repository.get_terminology_and_model_specific_closest_mappings(
-                embedding, terminology_name, model, limit=5
+                embedding, terminology_name, model, limit=limit
             )
-            mappings_list = []
-            for mapping, similarity in closest_mappings:
-                concept = mapping.concept
-                terminology = concept.terminology
-                mappings_list.append({
+            mappings_list = [
+                {
                     "concept": {
-                        "id": concept.concept_identifier,
-                        "name": concept.pref_label,
+                        "id": mapping.concept.concept_identifier,
+                        "name": mapping.concept.pref_label,
                         "terminology": {
-                            "id": terminology.id,
-                            "name": terminology.name
-                        }
+                            "id": mapping.concept.terminology.id,
+                            "name": mapping.concept.terminology.name,
+                        },
                     },
                     "text": mapping.text,
-                    "similarity": similarity
-                })
+                    "similarity": similarity,
+                }
+                for mapping, similarity in closest_mappings
+            ]
+
             response.append({
                 "variable": variable,
                 "description": description,
-                "mappings": mappings_list
+                "mappings": mappings_list,
             })
 
         # Clean up temporary file
