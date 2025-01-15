@@ -145,7 +145,7 @@ async def create_concept(id: str, concept_name: str, terminology_name: str):
 
 @app.get("/mappings", tags=["mappings"])
 async def get_all_mappings():
-    mappings = repository.get_all_mappings()
+    mappings = repository.get_mappings()
     return mappings
 
 
@@ -249,16 +249,16 @@ async def get_closest_mappings_for_dictionary(
         df = data_dict_source.to_dataframe()
 
         # Collect descriptions and their corresponding variables
-        descriptions = df[description_field].to_list()
-        variables = df[variable_field].to_list()
+        descriptions = df["description"].to_list()
+        variables = df["variable"].to_list()
 
         # Generate embeddings for all descriptions in batches
         embeddings = embedding_model.get_embeddings(descriptions)
 
-        # Process embeddings to get closes mappings
+        # Process embeddings to get closest mappings
         response = []
         for variable, description, embedding in zip(variables, descriptions, embeddings):
-            closest_mappings = repository.get_terminology_and_model_specific_closest_mappings(
+            closest_mappings = repository.get_terminology_and_model_specific_closest_mappings_with_similarities(
                 embedding, terminology_name, model, limit=limit
             )
             mappings_list = [
