@@ -224,7 +224,7 @@ async def get_closest_mappings_for_dictionary(
     terminology_name: str = Form("SNOMED CT"),
     variable_field: str = Form("variable"),
     description_field: str = Form("description"),
-    limit: int = 5
+    limit: int = Form(5)
 ):
     try:
         embedding_model = MPNetAdapter(model)
