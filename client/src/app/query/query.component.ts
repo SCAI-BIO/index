@@ -1,13 +1,23 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import {
   HttpClient,
   HttpClientModule,
   HttpHeaders,
 } from '@angular/common/http';
-import { FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import {
+  FormBuilder,
+  Validators,
+  FormGroup,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
 import { Subscription } from 'rxjs';
 
@@ -17,19 +27,29 @@ import { environment } from '../../environments/environment';
 @Component({
   selector: 'app-query',
   standalone: true,
-  imports: [HttpClientModule, MatPaginatorModule, MatFormFieldModule],
+  imports: [
+    CommonModule,
+    HttpClientModule,
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatTableModule,
+    ReactiveFormsModule,
+    RouterModule,
+  ],
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
 })
 export class QueryComponent implements OnInit, OnDestroy {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild('paginator') paginator!: MatPaginator;
   closestMappings: Mapping[] = [];
-  dataSource!: MatTableDataSource<Mapping>;
+  dataSource = new MatTableDataSource<Mapping>([]);
   displayedColumns = ['similarity', 'conceptName', 'conceptID', 'terminology'];
   embeddingModels: string[] = [];
   formData = new FormData();
   loading: boolean = false;
-  ontologies: string[] = [];
   queryForm: FormGroup;
   terminologies: string[] = [];
   private readonly API_URL = environment.openApiUrl;
@@ -38,8 +58,9 @@ export class QueryComponent implements OnInit, OnDestroy {
   constructor(private http: HttpClient, private fb: FormBuilder) {
     this.queryForm = this.fb.group({
       text: ['', Validators.required],
-      selectedOntology: ['', Validators.required],
-      selectedEmbeddingModel: ['sentence-transformers/all-mpnet-base-v2'],
+      selectedTerminology: ['', Validators.required],
+      selectedEmbeddingModel: ['', Validators.required],
+      limit: [100],
     });
   }
 
@@ -51,26 +72,16 @@ export class QueryComponent implements OnInit, OnDestroy {
 
     this.loading = true;
 
-    const requestBody = {
-      text: this.queryForm.value.text,
-      terminology_name: this.queryForm.value.selectedOntology,
-      model: this.queryForm.value.selectedEmbeddingModel,
-    };
-
     this.http
-      .post<Mapping[]>(`${this.API_URL}/mappings`, requestBody, {
-        headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      .post<Mapping[]>(`${this.API_URL}/mappings`, this.formData, {
+        headers: new HttpHeaders({ Accept: 'application/json' }),
       })
       .subscribe({
         next: (mapping) => {
           this.closestMappings = mapping;
           this.dataSource.data = mapping;
-
-          // Ensure paginator is available before setting
           setTimeout(() => {
-            if (this.paginator) {
-              this.dataSource.paginator = this.paginator;
-            }
+            this.dataSource.paginator = this.paginator;
           });
         },
         error: (err) => {
@@ -109,14 +120,22 @@ export class QueryComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.dataSource = new MatTableDataSource<Mapping>([]);
     this.subscriptions.add(this.fetchTerminologies());
     this.subscriptions.add(this.fetchEmbeddingModels());
   }
 
   onSubmit(): void {
     if (this.queryForm.valid) {
+      const { text, selectedEmbeddingModel, selectedTerminology, limit } =
+        this.queryForm.value;
+
+      this.formData.set('text', text);
+      this.formData.set('terminology_name', selectedTerminology);
+      this.formData.set('model', selectedEmbeddingModel);
+      this.formData.set('limit', limit.toString());
       this.fetchClosestMappings();
+    } else {
+      console.error('Form is invalid:', this.queryForm.value);
     }
   }
 }
