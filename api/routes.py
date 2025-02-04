@@ -75,12 +75,12 @@ app.add_middleware(
 
 
 @app.get("/", include_in_schema=False)
-def swagger_redirect():
+def root_redirect():
     return RedirectResponse(url='/docs')
 
 
 @app.get("/v1", include_in_schema=False)
-def swagger_redirect():
+def v1_redirect():
     return RedirectResponse(url='/docs')
 
 
@@ -186,14 +186,14 @@ async def create_mapping(concept_id: str,
 
 
 @app.post("/mappings", tags=["mappings"])
-async def get_closest_mappings_for_text(text: str,
-                                        terminology_name: str = "SNOMED CT",
-                                        model: str = "sentence-transformers/all-mpnet-base-v2",
-                                        limit: int = 5):
+async def get_closest_mappings_for_text(text: str = Form(...),
+                                        terminology_name: str = Form("SNOMED CT"),
+                                        model: str = Form("sentence-transformers/all-mpnet-base-v2"),
+                                        limit: int = Form(5)):
     try:
         embedding_model = MPNetAdapter(model)   
-        embedding = embedding_model.get_embedding(text).tolist()
-        closest_mappings = repository.get_terminology_and_model_specific_closest_mappings(embedding, terminology_name, model, limit)
+        embedding = embedding_model.get_embedding(text)
+        closest_mappings = repository.get_terminology_and_model_specific_closest_mappings_with_similarities(embedding, terminology_name, model, limit)
         mappings = []
         for mapping, similarity in closest_mappings:
             concept = mapping.concept
@@ -224,7 +224,7 @@ async def get_closest_mappings_for_dictionary(
     terminology_name: str = Form("SNOMED CT"),
     variable_field: str = Form("variable"),
     description_field: str = Form("description"),
-    limit: int = 5
+    limit: int = Form(5)
 ):
     try:
         embedding_model = MPNetAdapter(model)
