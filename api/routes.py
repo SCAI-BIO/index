@@ -75,12 +75,12 @@ app.add_middleware(
 
 
 @app.get("/", include_in_schema=False)
-def swagger_redirect():
+def root_redirect():
     return RedirectResponse(url='/docs')
 
 
 @app.get("/v1", include_in_schema=False)
-def swagger_redirect():
+def v1_redirect():
     return RedirectResponse(url='/docs')
 
 
