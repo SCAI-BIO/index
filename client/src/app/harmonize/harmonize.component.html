@@ -78,15 +78,33 @@
       </form>
     </div>
   </div>
-  <div class="submit-box">
-    <button
-      mat-raised-button
-      class="button-style"
-      color="primary"
-      (click)="onSubmit()"
-    >
-      Submit
-    </button>
+  <div
+    class="submit-download-box"
+    [ngClass]="{
+      'single-button': closestMappings.length === 0,
+      'two-buttons': closestMappings.length > 0
+    }"
+  >
+    <div class="submit-box">
+      <button
+        mat-raised-button
+        class="button-style"
+        color="primary"
+        (click)="onSubmit()"
+      >
+        Submit
+      </button>
+    </div>
+    <div *ngIf="closestMappings.length > 0" class="download-box">
+      <button
+        mat-raised-button
+        class="button-style"
+        color="primary"
+        (click)="downloadTableAsCSV()"
+      >
+        Download
+      </button>
+    </div>
   </div>
 
   <div *ngIf="loading" class="loading-spinner">

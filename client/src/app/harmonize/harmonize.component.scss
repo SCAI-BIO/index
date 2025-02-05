@@ -32,8 +32,19 @@
     }
 }
 
-.submit-box {
-    display: flex;
+.submit-download-box {
+    margin: 20px 0;
+    display: grid;
     justify-content: center;
-    margin: 20px;
+    align-content: center;
+
+    &.single-button {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    &.two-buttons {
+        grid-template-columns: 1fr 1fr;
+        justify-items: center;
+    }
 }

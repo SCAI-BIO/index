@@ -5,7 +5,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        margin-bottom: 20px;
+        margin-top: 20px;
 
         // Ensure form does not affect the layout
         form {
@@ -28,15 +28,13 @@
     }
 
     .parameters-form {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         width: 100%;
         gap: 20px;
 
         .language-model-form,
         .terminology-form {
-            flex: 1;
-
             mat-form-field {
                 width: 100%;
             }
@@ -46,6 +44,6 @@
     .submit-box {
         display: flex;
         justify-content: center;
-        margin-top: 20px;
+        margin: 20px 0;
     }
 }
