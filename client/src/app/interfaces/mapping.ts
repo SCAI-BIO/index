@@ -14,3 +14,9 @@ export interface Mapping {
   readonly text: string;
   readonly similarity: number;
 }
+
+export interface Response {
+  readonly variable: string;
+  readonly description: string;
+  readonly mappings: Mapping[];
+}
