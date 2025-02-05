@@ -124,7 +124,9 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
         next: (response) => {
           this.closestMappings = response;
           this.dataSource.data = response;
-          this.dataSource.paginator = this.paginator;
+          setTimeout(() => {
+            this.dataSource.paginator = this.paginator;
+          });
         },
         error: (err) => {
           console.error('Error fetching closest mappings', err);

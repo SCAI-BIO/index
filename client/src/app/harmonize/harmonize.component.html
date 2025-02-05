@@ -101,27 +101,27 @@
       <ng-container matColumnDef="similarity">
         <th mat-header-cell *matHeaderCellDef>Similarity Score</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.mappings[0].similarity }}
+          {{ element.mappings[0].similarity | number : "1.2-2" }}
         </td>
       </ng-container>
       <ng-container matColumnDef="variable">
-        <th mat-header-cell *matHeaderCellDef>Source Variable</th>
+        <th mat-header-cell *matHeaderCellDef>Variable</th>
         <td mat-cell *matCellDef="let element">{{ element.variable }}</td>
       </ng-container>
       <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef>Source Description</th>
+        <th mat-header-cell *matHeaderCellDef>Description</th>
         <td mat-cell *matCellDef="let element">{{ element.description }}</td>
       </ng-container>
       <ng-container matColumnDef="conceptID">
-        <th mat-header-cell *matHeaderCellDef>Target Variable</th>
+        <th mat-header-cell *matHeaderCellDef>Concept ID</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.mappings[0].concept.name }}
+          {{ element.mappings[0].concept.id }}
         </td>
       </ng-container>
       <ng-container matColumnDef="prefLabel">
-        <th mat-header-cell *matHeaderCellDef>Target Description</th>
+        <th mat-header-cell *matHeaderCellDef>Concept Name</th>
         <td mat-cell *matCellDef="let element">
-          {{ element.mappings[0].text }}
+          {{ element.mappings[0].concept.name }}
         </td>
       </ng-container>
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -129,7 +129,7 @@
     </table>
     <mat-paginator
       #paginator
-      [pageSizeOptions]="[10, 20, 30]"
+      [pageSizeOptions]="[10, 25, 50, 100]"
       showFirstLastButtons
     ></mat-paginator>
   </div>
