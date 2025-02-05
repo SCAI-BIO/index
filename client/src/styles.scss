@@ -1,7 +1,100 @@
+// Define global button variables
+$max-width: 90%;
+$font-size: 16px;
+
+// Button variables
+$button-primary: #171321;
+$button-hover: #382f51;
+$button-padding: 10px 20px;
+$button-radius: 5px;
+
+// Typography
 body {
     font-family: 'Roboto', sans-serif;
-    font-size: 16px;
+    font-size: $font-size;
     line-height: 1.6;
+    margin: 0;
 }
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+html,
+body {
+    height: 100%;
+}
+
+// Reusable Button Styling
+.button-style {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: $button-padding;
+    font-size: $font-size;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    background-color: $button-primary;
+    color: white;
+    border-radius: $button-radius;
+    transition: background 0.3s ease;
+    text-align: center;
+    white-space: nowrap;
+
+    &:hover {
+        background-color: $button-hover;
+    }
+}
+
+// Layout utilities
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    max-width: $max-width;
+    margin: 0 auto;
+}
+
+// Search Type Box
+.search-type-box {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+// Table Styles
+.table-container {
+    width: 100%;
+    overflow: auto;
+    max-height: 800px;
+    max-width: $max-width;
+    margin-top: 20px;
+
+    table {
+        width: 100%;
+    }
+}
+
+// Table Column Borders
+.mat-table th,
+.mat-table td {
+    border-right: 1px solid #e0e0e0;
+}
+
+.mat-table th:last-child,
+.mat-table td:last-child {
+    border-right: none;
+}
+
+// Loading spinner
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
