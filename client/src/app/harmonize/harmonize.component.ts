@@ -23,6 +23,7 @@ import { Subscription } from 'rxjs';
 
 import { Response, Terminology } from '../interfaces/mapping';
 import { environment } from '../../environments/environment';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-harmonize',
@@ -38,6 +39,7 @@ import { environment } from '../../environments/environment';
     MatSelectModule,
     MatTableModule,
     ReactiveFormsModule,
+    RouterModule,
   ],
   templateUrl: './harmonize.component.html',
   styleUrl: './harmonize.component.scss',
@@ -97,15 +99,34 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     return [headers.join(','), ...rows].join('\n');
   }
 
-  downloadTableAsCSV(): void {
+  async downloadTableAsCSV(): Promise<void> {
     const csvData = this.convertToCSV(this.closestMappings);
     const blob = new Blob([csvData], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `kitsune-harmonization-${new Date().toISOString()}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+
+    // Extend TypeScript to recognize showSaveFilePicker
+    if ('showSaveFilePicker' in window) {
+      try {
+        const saveFilePicker = window.showSaveFilePicker;
+        if (typeof saveFilePicker === 'function') {
+          const handle = await saveFilePicker({
+            suggestedName: `kitsune-harmonization-${new Date().toISOString()}.csv`,
+            types: [
+              {
+                description: 'CSV file',
+                accept: { 'text/csv': ['.csv'] },
+              },
+            ],
+          });
+
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return;
+        }
+      } catch (error) {
+        console.error('File saving canceled or failed:', error);
+      }
+    }
   }
 
   fetchClosestMappings(): Subscription | undefined {
