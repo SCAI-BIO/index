@@ -1,7 +1,7 @@
-<main class="query-component">
+<main class="main-container query-component">
   <div class="search-type-box">
-    <button class="query-type-box" routerLink="/query">Search by Query</button>
-    <button class="file-type-box" routerLink="/harmonize">
+    <button class="button-style" routerLink="/query">Search by Query</button>
+    <button class="button-style" routerLink="/harmonize">
       Upload a Dictionary
     </button>
   </div>
@@ -28,6 +28,12 @@
                 >{{ model }}</mat-option
               >
             </mat-select>
+            <mat-error
+              *ngIf="
+                queryForm.get('selectedEmbeddingModel')?.hasError('required')
+              "
+              >Please <strong>select</strong> a language model</mat-error
+            >
           </mat-form-field>
         </div>
         <div class="terminology-form">
@@ -42,13 +48,18 @@
             </mat-select>
             <mat-error
               *ngIf="queryForm.get('selectedTerminology')?.hasError('required')"
-              >Please <strong>select</strong> a language model</mat-error
+              >Please <strong>select</strong> a terminology</mat-error
             >
           </mat-form-field>
         </div>
       </div>
       <div class="submit-box">
-        <button mat-raised-button color="primary" (click)="onSubmit()">
+        <button
+          mat-raised-button
+          class="button-style"
+          color="primary"
+          (click)="onSubmit()"
+        >
           Submit
         </button>
       </div>
