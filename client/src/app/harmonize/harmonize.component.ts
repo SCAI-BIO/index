@@ -1,10 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  HttpClient,
-  HttpClientModule,
-  HttpHeaders,
-} from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -18,19 +13,17 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-
-import { Subscription } from 'rxjs';
-
-import { Response, Terminology } from '../interfaces/mapping';
-import { environment } from '../../environments/environment';
 import { RouterModule } from '@angular/router';
+
+import { Response } from '../interfaces/mapping';
+import { ApiService } from '../services/api.service';
+import { FileService } from '../services/file.service';
 
 @Component({
   selector: 'app-harmonize',
   standalone: true,
   imports: [
     CommonModule,
-    HttpClientModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -44,7 +37,7 @@ import { RouterModule } from '@angular/router';
   templateUrl: './harmonize.component.html',
   styleUrl: './harmonize.component.scss',
 })
-export class HarmonizeComponent implements OnDestroy, OnInit {
+export class HarmonizeComponent implements OnInit {
   @ViewChild('paginator') paginator!: MatPaginator;
   closestMappings: Response[] = [];
   dataSource = new MatTableDataSource<Response>([]);
@@ -64,10 +57,12 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
   requiredFileType: string =
     '.csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   terminologies: string[] = [];
-  private readonly API_URL = environment.openApiUrl;
-  private subscriptions: Subscription = new Subscription();
 
-  constructor(private http: HttpClient, private fb: FormBuilder) {
+  constructor(
+    private apiService: ApiService,
+    private fileService: FileService,
+    private fb: FormBuilder
+  ) {
     this.harmonizeForm = this.fb.group({
       selectedTerminology: ['', Validators.required],
       selectedEmbeddingModel: ['', Validators.required],
@@ -77,116 +72,65 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     });
   }
 
-  convertToCSV(data: Response[]): string {
-    const headers = [
-      'Similarity',
-      'Variable',
-      'Description',
-      'ConceptID',
-      'PrefLabel',
-    ];
-
-    const escapeCSV = (value: string) => `"${value.replace(/"/g, '""')}"`;
-    const rows = data.map((item) =>
-      [
-        item.mappings[0].similarity,
-        escapeCSV(item.variable),
-        escapeCSV(item.description),
-        escapeCSV(item.mappings[0].concept.id),
-        escapeCSV(item.mappings[0].concept.name),
-      ].join(',')
+  downloadTableAsCSV(): void {
+    this.fileService.downloadCSV(
+      this.closestMappings,
+      'kitsune-harmonization.csv'
     );
-    return [headers.join(','), ...rows].join('\n');
   }
 
-  async downloadTableAsCSV(): Promise<void> {
-    const csvData = this.convertToCSV(this.closestMappings);
-    const blob = new Blob([csvData], { type: 'text/csv' });
-
-    // Extend TypeScript to recognize showSaveFilePicker
-    if ('showSaveFilePicker' in window) {
-      try {
-        const saveFilePicker = window.showSaveFilePicker;
-        if (typeof saveFilePicker === 'function') {
-          const handle = await saveFilePicker({
-            suggestedName: `kitsune-harmonization-${new Date().toISOString()}.csv`,
-            types: [
-              {
-                description: 'CSV file',
-                accept: { 'text/csv': ['.csv'] },
-              },
-            ],
-          });
-
-          const writable = await handle.createWritable();
-          await writable.write(blob);
-          await writable.close();
-          return;
-        }
-      } catch (error) {
-        console.error('File saving canceled or failed:', error);
-      }
-    }
-  }
-
-  fetchClosestMappings(): Subscription | undefined {
+  fetchClosestMappings(): void {
     if (!this.harmonizeForm.valid) {
       console.error('Form is invalid:', this.harmonizeForm.value);
       return;
     }
 
     this.loading = true;
-
-    return this.http
-      .post<Response[]>(`${this.API_URL}/mappings/dict`, this.formData, {
-        headers: new HttpHeaders({ Accept: 'application/json' }),
-      })
-      .subscribe({
-        next: (response) => {
-          this.closestMappings = response;
-          this.dataSource.data = response;
-          setTimeout(() => {
-            this.dataSource.paginator = this.paginator;
-          });
-        },
-        error: (err) => {
-          console.error('Error fetching closest mappings', err);
-          this.loading = false;
-          const errorMessage =
-            err.error?.message || err.message || 'Unknown error occurred';
-          alert(`An error occurred while fetching mappings: ${errorMessage}`);
-        },
-        complete: () => {
-          this.loading = false;
-        },
-      });
-  }
-
-  fetchEmbeddingModels(): Subscription {
-    return this.http.get<string[]>(`${this.API_URL}/models`).subscribe({
-      next: (models) => (this.embeddingModels = models),
-      error: (err) => console.error('Error fetching embeddings models:', err),
+    this.apiService.fetchClosestMappingsDictionary(this.formData).subscribe({
+      next: (responses) => {
+        this.closestMappings = responses;
+        this.dataSource.data = responses;
+        setTimeout(() => {
+          this.dataSource.paginator = this.paginator;
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching closest mappings', err);
+        this.loading = false;
+        const errorMessage =
+          err.error?.message || err.message || 'Unknown error occurred';
+        alert(`An error occurred while fetching mappings: ${errorMessage}`);
+      },
+      complete: () => (this.loading = false),
     });
   }
 
-  fetchTerminologies(): Subscription {
-    return this.http
-      .get<Terminology[]>(`${this.API_URL}/terminologies`)
-      .subscribe({
-        next: (terminologies) => {
-          this.terminologies = terminologies.map((t) => t.name);
-        },
-        error: (err) => console.error('Error fetching terminologies', err),
-      });
+  fetchEmbeddingModels(): void {
+    this.apiService.fetchEmbeddingModels().subscribe({
+      next: (models) => {
+        this.embeddingModels = models;
+      },
+      error: (err) => {
+        console.error('Error fetching closest mappings', err);
+        this.loading = false;
+        const errorMessage =
+          err.error?.message || err.message || 'Unknown error occurred';
+        alert(`An error occurred while fetching mappings: ${errorMessage}`);
+      },
+    });
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+  fetchTerminologies(): void {
+    this.apiService.fetchTerminologies().subscribe({
+      next: (terminologies) => {
+        this.terminologies = terminologies.map((t) => t.name);
+      },
+    });
   }
 
   ngOnInit(): void {
-    this.subscriptions.add(this.fetchTerminologies());
-    this.subscriptions.add(this.fetchEmbeddingModels());
+    this.fetchTerminologies();
+    this.fetchEmbeddingModels();
   }
 
   onFileSelect(event: Event): void {
@@ -212,7 +156,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       this.formData.set('model', selectedEmbeddingModel);
       this.formData.set('terminology_name', selectedTerminology);
 
-      this.subscriptions.add(this.fetchClosestMappings());
+      this.fetchClosestMappings();
     } else {
       console.error('Form is invalid:', this.harmonizeForm.value);
     }

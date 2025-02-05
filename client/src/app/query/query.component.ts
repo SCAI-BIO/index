@@ -1,10 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import {
-  HttpClient,
-  HttpClientModule,
-  HttpHeaders,
-} from '@angular/common/http';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import {
   FormBuilder,
@@ -19,17 +14,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 
-import { Subscription } from 'rxjs';
-
-import { Mapping, Terminology } from '../interfaces/mapping';
-import { environment } from '../../environments/environment';
+import { Mapping } from '../interfaces/mapping';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-query',
   standalone: true,
   imports: [
     CommonModule,
-    HttpClientModule,
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
@@ -42,7 +34,7 @@ import { environment } from '../../environments/environment';
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
 })
-export class QueryComponent implements OnInit, OnDestroy {
+export class QueryComponent implements OnInit {
   @ViewChild('paginator') paginator!: MatPaginator;
   closestMappings: Mapping[] = [];
   dataSource = new MatTableDataSource<Mapping>([]);
@@ -52,10 +44,8 @@ export class QueryComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   queryForm: FormGroup;
   terminologies: string[] = [];
-  private readonly API_URL = environment.openApiUrl;
-  private subscriptions: Subscription = new Subscription();
 
-  constructor(private http: HttpClient, private fb: FormBuilder) {
+  constructor(private apiService: ApiService, private fb: FormBuilder) {
     this.queryForm = this.fb.group({
       text: ['', Validators.required],
       selectedTerminology: ['', Validators.required],
@@ -71,57 +61,51 @@ export class QueryComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-
-    this.http
-      .post<Mapping[]>(`${this.API_URL}/mappings`, this.formData, {
-        headers: new HttpHeaders({ Accept: 'application/json' }),
-      })
-      .subscribe({
-        next: (mapping) => {
-          this.closestMappings = mapping;
-          this.dataSource.data = mapping;
-          setTimeout(() => {
-            this.dataSource.paginator = this.paginator;
-          });
-        },
-        error: (err) => {
-          console.error('Error fetching closest mappings', err);
-          this.loading = false;
-          const errorMessage =
-            err.error?.message || err.message || 'Unknown error occurred';
-          alert(`An error occurred while fetching mappings: ${errorMessage}`);
-        },
-        complete: () => {
-          this.loading = false;
-        },
-      });
-  }
-
-  fetchEmbeddingModels(): Subscription {
-    return this.http.get<string[]>(`${this.API_URL}/models`).subscribe({
-      next: (models) => (this.embeddingModels = models),
-      error: (err) => console.error('Error fetching embeddings models:', err),
+    this.apiService.fetchClosestMappingsQuery(this.formData).subscribe({
+      next: (mappings) => {
+        this.closestMappings = mappings;
+        this.dataSource.data = mappings;
+        setTimeout(() => {
+          this.dataSource.paginator = this.paginator;
+        });
+      },
+      error: (err) => {
+        console.error('Error fetching closest mappings', err);
+        this.loading = false;
+        const errorMessage =
+          err.error?.message || err.message || 'Unknown error occurred';
+        alert(`An error occurred while fetching mappings: ${errorMessage}`);
+      },
+      complete: () => (this.loading = false),
     });
   }
 
-  fetchTerminologies(): Subscription {
-    return this.http
-      .get<Terminology[]>(`${this.API_URL}/terminologies`)
-      .subscribe({
-        next: (terminologies) => {
-          this.terminologies = terminologies.map((t) => t.name);
-        },
-        error: (err) => console.error('Error fetching terminologies', err),
-      });
+  fetchEmbeddingModels(): void {
+    this.apiService.fetchEmbeddingModels().subscribe({
+      next: (models) => {
+        this.embeddingModels = models;
+      },
+      error: (err) => {
+        console.error('Error fetching closest mappings', err);
+        this.loading = false;
+        const errorMessage =
+          err.error?.message || err.message || 'Unknown error occurred';
+        alert(`An error occurred while fetching mappings: ${errorMessage}`);
+      },
+    });
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+  fetchTerminologies(): void {
+    this.apiService.fetchTerminologies().subscribe({
+      next: (terminologies) => {
+        this.terminologies = terminologies.map((t) => t.name);
+      },
+    });
   }
 
   ngOnInit(): void {
-    this.subscriptions.add(this.fetchTerminologies());
-    this.subscriptions.add(this.fetchEmbeddingModels());
+    this.fetchTerminologies();
+    this.fetchEmbeddingModels();
   }
 
   onSubmit(): void {
