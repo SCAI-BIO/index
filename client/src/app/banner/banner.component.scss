@@ -5,10 +5,27 @@
     align-items: center;
     padding: 10px 20px;
     height: 60px;
+}
 
-    .logo {
-        width: 40px;
-        height: 40px;
-        margin-right: 15px;
-    }
+.logo {
+    height: 40px;
+    width: auto;
+    margin-right: 15px;
+}
+
+
+.site-title {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.github-link {
+    display: flex;
+    align-items: center;
+}
+
+.github-logo {
+    height: 40px;
+    width: auto;
+    cursor: pointer;
 }
