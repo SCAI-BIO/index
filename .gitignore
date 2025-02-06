@@ -163,3 +163,4 @@ cython_debug/
 gptstew/.env!/gptstew/resources/
 .idea
 .vscode
+db
