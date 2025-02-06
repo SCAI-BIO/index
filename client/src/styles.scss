@@ -1,6 +1,7 @@
 // Define global button variables
 $max-width: 90%;
 $font-size: 16px;
+$bold-font-weight: 600;
 
 // Button variables
 $button-primary: #171321;
@@ -19,6 +20,11 @@ body {
 html,
 body {
     height: 100%;
+}
+
+strong,
+b {
+    font-weight: $bold-font-weight;
 }
 
 // Reusable Button Styling
@@ -51,6 +57,14 @@ body {
     padding: 20px;
     max-width: $max-width;
     margin: 0 auto;
+}
+
+// Description Box
+.description-box {
+    max-width: 50%;
+    margin-bottom: 20px;
+    text-align: center;
+    align-self: center;
 }
 
 // Search Type Box
