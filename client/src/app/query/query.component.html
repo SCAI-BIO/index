@@ -6,6 +6,25 @@
     </button>
   </div>
 
+  <!-- Description -->
+  <div class="description-box">
+    <section class="description">
+      <p>
+        The <strong>Query Search</strong> allows you to find the closes semantic
+        matches for a given variable within a selected terminology. By
+        leveraging embeddings from LLMs and PLMs, Kitsune helps you identify
+        relevant ontology or standard concepts efficiently.
+      </p>
+      <p>
+        To perform a search, enter a query (e.g., <em>Diabetes</em>), select a
+        language model and a terminology from the dropdown lists, and submit
+        your request. The system will retrieve the
+        <strong>100 closest matches</strong> from the chosen terminology, ranked
+        by similarity.
+      </p>
+    </section>
+  </div>
+
   <div class="query-box">
     <form [formGroup]="queryForm">
       <div class="query-form">
