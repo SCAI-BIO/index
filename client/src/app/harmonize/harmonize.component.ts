@@ -22,22 +22,21 @@ import { ApiService } from '../services/api.service';
 import { FileService } from '../services/file.service';
 
 @Component({
-  selector: 'app-harmonize',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatPaginatorModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatTableModule,
-    ReactiveFormsModule,
-    RouterModule,
-  ],
-  templateUrl: './harmonize.component.html',
-  styleUrl: './harmonize.component.scss',
+    selector: 'app-harmonize',
+    imports: [
+        CommonModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatPaginatorModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatTableModule,
+        ReactiveFormsModule,
+        RouterModule,
+    ],
+    templateUrl: './harmonize.component.html',
+    styleUrl: './harmonize.component.scss'
 })
 export class HarmonizeComponent implements OnDestroy, OnInit {
   @ViewChild('paginator') paginator!: MatPaginator;

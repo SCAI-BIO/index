@@ -20,21 +20,20 @@ import { Mapping } from '../interfaces/mapping';
 import { ApiService } from '../services/api.service';
 
 @Component({
-  selector: 'app-query',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatPaginatorModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSelectModule,
-    MatTableModule,
-    ReactiveFormsModule,
-    RouterModule,
-  ],
-  templateUrl: './query.component.html',
-  styleUrl: './query.component.scss',
+    selector: 'app-query',
+    imports: [
+        CommonModule,
+        MatPaginatorModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatProgressSpinnerModule,
+        MatSelectModule,
+        MatTableModule,
+        ReactiveFormsModule,
+        RouterModule,
+    ],
+    templateUrl: './query.component.html',
+    styleUrl: './query.component.scss'
 })
 export class QueryComponent implements OnDestroy, OnInit {
   @ViewChild('paginator') paginator!: MatPaginator;
