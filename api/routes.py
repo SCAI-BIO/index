@@ -48,11 +48,11 @@ app = FastAPI(
 
 
 def connect_to_remote_weaviate_repository():
-    weaviate_url = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
+    weaviate_url = os.getenv("WEAVIATE_URL", "localhost")
     retries = 5
     for i in range(retries):
         try:
-            return WeaviateRepository(mode="remote", path=weaviate_url)
+            return WeaviateRepository(mode="remote", path=weaviate_url, http_port=8080, port=8080)
         except Exception as e:
             logger.info(f"Attempt {i + 1} to connect to {weaviate_url} failed with error: {e}")
             time.sleep(5)
