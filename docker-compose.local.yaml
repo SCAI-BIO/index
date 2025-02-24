@@ -20,6 +20,7 @@ services:
       - "5000:80"
     depends_on:
       - weaviate
+      - ollama
 
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.24.20
@@ -27,6 +28,14 @@ services:
       - "8080:8080"
     volumes:
       - weaviate_data:/var/lib/weaviate
+
+  ollama:
+    image: ollama
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    ports:
+      - "11434:11434"
 
 volumes:
 

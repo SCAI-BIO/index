@@ -45,3 +45,12 @@ jobs:
         tags: |
           ghcr.io/scai-bio/index/client:latest
           ghcr.io/scai-bio/index/client:${{ steps.version.outputs.VERSION }}
+    - name: Build & push ollama
+      uses: docker/build-push-action@v6
+      with:
+        context: ./ollama
+        file: ./ollama/Dockerfile
+        push: true
+        tags: |
+          ghcr.io/scai-bio/kitsune/ollama:latest
+          ghcr.io/scai-bio/kitsune/ollama:${{ steps.version.outputs.VERSION }}
