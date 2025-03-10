@@ -15,6 +15,8 @@ from starlette.background import BackgroundTasks
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import HTMLResponse, RedirectResponse
 
+from api.tasks import ImportTask
+
 app = FastAPI(
     title="INDEX",
     description="<div id=info-text><h1>Introduction</h1>"
@@ -72,6 +74,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+active_tasks: ImportTask = []
 
 
 @app.get("/", include_in_schema=False)
@@ -301,6 +305,28 @@ def import_ols_terminology_task(terminology_id, model: str = "sentence-transform
     embedding_model = MPNetAdapter(model)
     task = OLSTerminologyImportTask(repository, embedding_model, terminology_id, terminology_id)
     task.process()
+
+
+@app.get("/import/tasks", description="Get currently scheduled import tasks")
+def get_import_tasks():
+    active_task_ids = [task.id for task in active_tasks]
+    return active_task_ids
+
+
+@app.get("/import/tasks/{task_id}", description="Get details for a specific import task")
+def get_task_status(task_id :str):
+    for task in active_tasks:
+        if task.id == task_id:
+            # TODO to string / JSON method implementation for task
+            return str(task)
+    raise HTTPException(status_code=404, detail=f"Task with id {task_id} not found.")
+
+
+@app.put("/import/terminology/{terminology_id}", description="Import terminology from remote hosted JSON.")
+def import_from_remote(url: str):
+    task = ImportTask(url)
+    # TODO: implement import from remote
+    return task.id
 
 
 @app.put("/import/terminology/snomed",
