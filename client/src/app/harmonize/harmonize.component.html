@@ -167,7 +167,7 @@
     <table mat-table [dataSource]="dataSource" class="mat-table">
       <!-- Cosine Similarity Column (Displays Similarity Score) -->
       <ng-container matColumnDef="similarity">
-        <th mat-header-cell *matHeaderCellDef>Cosine Similarity Score</th>
+        <th mat-header-cell *matHeaderCellDef>Cosine Similarity Score*</th>
         <td mat-cell *matCellDef="let element">
           {{ element.mappings[0].similarity | number : "1.2-2" }}
         </td>

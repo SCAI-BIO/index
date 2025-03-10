@@ -10,6 +10,7 @@ from datastew.process.ols import OLSTerminologyImportTask
 from datastew.repository import WeaviateRepository
 from datastew.repository.model import Concept, Mapping, Terminology
 from datastew.visualisation import get_plot_for_current_database_state
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from starlette.background import BackgroundTasks
 from starlette.middleware.cors import CORSMiddleware
@@ -40,19 +41,28 @@ app = FastAPI(
         "info": {
             "x-logo": {
                 "url": "https://example.com/logo.png",
-                "altText": "Your API Logo"
+                "altText": "Your API Logo",
             }
         }
     },
 )
 
+load_dotenv()
+
 
 def connect_to_remote_weaviate_repository():
-    weaviate_url = os.getenv("WEAVIATE_URL", "http://weaviate:8080")
+    weaviate_url = os.getenv("WEAVIATE_URL", "localhost")
+    huggingface_key = os.getenv("HUGGINGFACE_KEY")
     retries = 5
     for i in range(retries):
         try:
-            return WeaviateRepository(mode="remote", path=weaviate_url)
+            return WeaviateRepository(
+                use_weaviate_vectorizer=bool(huggingface_key),
+                huggingface_key=huggingface_key,
+                mode="remote",
+                path=weaviate_url,
+                port=8080 if weaviate_url == "localhost" else 80,
+            )
         except Exception as e:
             logger.info(f"Attempt {i + 1} to connect to {weaviate_url} failed with error: {e}")
             time.sleep(5)
@@ -76,12 +86,12 @@ app.add_middleware(
 
 @app.get("/", include_in_schema=False)
 def root_redirect():
-    return RedirectResponse(url='/docs')
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/v1", include_in_schema=False)
 def v1_redirect():
-    return RedirectResponse(url='/docs')
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/version", tags=["info"])
@@ -113,7 +123,7 @@ async def get_all_terminologies():
 @app.put("/terminologies/{id}", tags=["terminologies"])
 async def create_terminology(id: str, name: str):
     try:
-        terminology = Terminology(name=name, id=id)
+        terminology = Terminology(name, id)
         repository.store(terminology)
         return {"message": f"Terminology {id} created successfully"}
     except Exception as e:
@@ -136,7 +146,7 @@ async def get_all_concepts():
 async def create_concept(id: str, concept_name: str, terminology_name: str):
     try:
         terminology = repository.get_terminology(terminology_name)
-        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=id)
+        concept = Concept(terminology, concept_name, id)
         repository.store(concept)
         return {"message": f"Concept {id} created successfully"}
     except Exception as e:
@@ -150,19 +160,21 @@ async def get_all_mappings():
 
 
 @app.put("/concepts/{id}/mappings", tags=["concepts", "mappings"])
-async def create_concept_and_attach_mapping(id: str,
-                                            concept_name: str,
-                                            terminology_name,
-                                            text: str,
-                                            model: str = "sentence-transformers/all-mpnet-base-v2"):
+async def create_concept_and_attach_mapping(
+    id: str,
+    concept_name: str,
+    terminology_name: str,
+    text: str,
+    model: str = "sentence-transformers/all-mpnet-base-v2",
+):
     try:
         terminology = repository.get_terminology(terminology_name)
-        concept = Concept(terminology=terminology, pref_label=concept_name, concept_identifier=id)
+        concept = Concept(terminology, concept_name, id)
         repository.store(concept)
         embedding_model = MPNetAdapter(model)
         embedding = embedding_model.get_embedding(text)
         model_name = embedding_model.get_model_name()
-        mapping = Mapping(concept=concept, text=text, embedding=embedding, sentence_embedder=model_name)
+        mapping = Mapping(concept, text, embedding, model_name)
         repository.store(mapping)
         return {"message": f"Concept {id} created successfully"}
     except Exception as e:
@@ -170,15 +182,13 @@ async def create_concept_and_attach_mapping(id: str,
 
 
 @app.put("/mappings/", tags=["mappings"])
-async def create_mapping(concept_id: str,
-                         text: str,
-                         model: str = "sentence-transformers/all-mpnet-base-v2"):
+async def create_mapping(concept_id: str, text: str, model: str = "sentence-transformers/all-mpnet-base-v2"):
     try:
         concept = repository.get_concept(concept_id)
         embedding_model = MPNetAdapter(model)
         embedding = embedding_model.get_embedding(text)
         model_name = embedding_model.get_model_name()
-        mapping = Mapping(concept=concept, text=text, embedding=embedding, sentence_embedder=model_name)
+        mapping = Mapping(concept, text, embedding, model_name)
         repository.store(mapping)
         return {"message": "Mapping created successfully"}
     except Exception as e:
@@ -186,30 +196,31 @@ async def create_mapping(concept_id: str,
 
 
 @app.post("/mappings", tags=["mappings"])
-async def get_closest_mappings_for_text(text: str = Form(...),
-                                        terminology_name: str = Form("SNOMED CT"),
-                                        model: str = Form("sentence-transformers/all-mpnet-base-v2"),
-                                        limit: int = Form(5)):
+async def get_closest_mappings_for_text(
+    text: str = Form(...),
+    terminology_name: str = Form("SNOMED CT"),
+    model: str = Form("sentence-transformers/all-mpnet-base-v2"),
+    limit: int = Form(5),
+):
     try:
-        embedding_model = MPNetAdapter(model)   
+        embedding_model = MPNetAdapter(model)
         embedding = embedding_model.get_embedding(text)
-        closest_mappings = repository.get_terminology_and_model_specific_closest_mappings_with_similarities(embedding, terminology_name, model, limit)
+        closest_mappings = repository.get_closest_mappings(embedding, True, terminology_name, model, limit)
         mappings = []
-        for mapping, similarity in closest_mappings:
-            concept = mapping.concept
+        for mapping_result in closest_mappings:
+            concept = mapping_result.mapping.concept
             terminology = concept.terminology
-            mappings.append({
-                "concept": {
-                    "id": concept.concept_identifier,
-                    "name": concept.pref_label,
-                    "terminology": {
-                        "id": terminology.id,
-                        "name": terminology.name
-                    }
-                },
-                "text": mapping.text,
-                "similarity": similarity
-            })
+            mappings.append(
+                {
+                    "concept": {
+                        "id": concept.concept_identifier,
+                        "name": concept.pref_label,
+                        "terminology": {"id": terminology.id, "name": terminology.name},
+                    },
+                    "text": mapping_result.mapping.text,
+                    "similarity": mapping_result.similarity,
+                }
+            )
 
         return mappings
     except Exception as e:
@@ -219,12 +230,12 @@ async def get_closest_mappings_for_text(text: str = Form(...),
 # Endpoint to get mappings for a data dictionary source
 @app.post("/mappings/dict", tags=["mappings"], description="Get mappings for a data dictionary source.")
 async def get_closest_mappings_for_dictionary(
-    file: UploadFile = File(...), 
-    model: str = Form("sentence-transformers/all-mpnet-base-v2"), 
+    file: UploadFile = File(...),
+    model: str = Form("sentence-transformers/all-mpnet-base-v2"),
     terminology_name: str = Form("SNOMED CT"),
     variable_field: str = Form("variable"),
     description_field: str = Form("description"),
-    limit: int = Form(5)
+    limit: int = Form(5),
 ):
     try:
         embedding_model = MPNetAdapter(model)
@@ -241,11 +252,7 @@ async def get_closest_mappings_for_dictionary(
             tmp_file_path = tmp_file.name
 
         # Initialize DataDictionarySource
-        data_dict_source = DataDictionarySource(
-            file_path=tmp_file_path,
-            variable_field=variable_field,
-            description_field=description_field
-        )
+        data_dict_source = DataDictionarySource(tmp_file_path, variable_field, description_field)
         df = data_dict_source.to_dataframe()
 
         # Collect descriptions and their corresponding variables
@@ -258,30 +265,24 @@ async def get_closest_mappings_for_dictionary(
         # Process embeddings to get closest mappings
         response = []
         for variable, description, embedding in zip(variables, descriptions, embeddings):
-            closest_mappings = repository.get_terminology_and_model_specific_closest_mappings_with_similarities(
-                embedding, terminology_name, model, limit=limit
-            )
+            closest_mappings = repository.get_closest_mappings(embedding, True, terminology_name, model, limit)
             mappings_list = [
                 {
                     "concept": {
-                        "id": mapping.concept.concept_identifier,
-                        "name": mapping.concept.pref_label,
+                        "id": mapping_result.mapping.concept.concept_identifier,
+                        "name": mapping_result.mapping.concept.pref_label,
                         "terminology": {
-                            "id": mapping.concept.terminology.id,
-                            "name": mapping.concept.terminology.name,
+                            "id": mapping_result.mapping.concept.terminology.id,
+                            "name": mapping_result.mapping.concept.terminology.name,
                         },
                     },
-                    "text": mapping.text,
-                    "similarity": similarity,
+                    "text": mapping_result.mapping.text,
+                    "similarity": mapping_result.similarity,
                 }
-                for mapping, similarity in closest_mappings
+                for mapping_result in closest_mappings
             ]
 
-            response.append({
-                "variable": variable,
-                "description": description,
-                "mappings": mappings_list,
-            })
+            response.append({"variable": variable, "description": description, "mappings": mappings_list})
 
         # Clean up temporary file
         os.remove(tmp_file_path)
@@ -293,22 +294,19 @@ async def get_closest_mappings_for_dictionary(
 
 def import_snomed_ct_task(model: str = "sentence-transformers/all-mpnet-base-v2"):
     embedding_model = MPNetAdapter(model)
-    task = OLSTerminologyImportTask(repository, embedding_model, "SNOMED CT", "snomed")
-    task.process()
+    task = OLSTerminologyImportTask(embedding_model, "SNOMED CT", "snomed")
+    task.process_to_weaviate(repository)
 
 
 def import_ols_terminology_task(terminology_id, model: str = "sentence-transformers/all-mpnet-base-v2"):
     embedding_model = MPNetAdapter(model)
-    task = OLSTerminologyImportTask(repository, embedding_model, terminology_id, terminology_id)
-    task.process()
+    task = OLSTerminologyImportTask(embedding_model, terminology_id, terminology_id)
+    task.process_to_weaviate(repository)
 
 
-@app.put("/import/terminology/snomed",
-         description="Import whole SNOMED CT from OLS.",
-         tags=["import", "tasks"])
-async def import_snomed_ct(background_tasks: BackgroundTasks,
-                           model: str = "sentence-transformers/all-mpnet-base-v2"):
-    background_tasks.add_task(import_snomed_ct_task, model=model)
+@app.put("/import/terminology/snomed", description="Import whole SNOMED CT from OLS.", tags=["import", "tasks"])
+async def import_snomed_ct(background_tasks: BackgroundTasks, model: str = "sentence-transformers/all-mpnet-base-v2"):
+    background_tasks.add_task(import_snomed_ct_task, model)
     return {"message": "SNOMED CT import started in the background"}
 
 
