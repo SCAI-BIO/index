@@ -1,7 +1,9 @@
+import asyncio
 import logging
 import os
 import tempfile
 import time
+from enum import Enum
 
 import uvicorn
 from datastew import DataDictionarySource
@@ -60,7 +62,6 @@ def connect_to_remote_weaviate_repository():
                 use_weaviate_vectorizer=bool(huggingface_key),
                 huggingface_key=huggingface_key,
                 mode="remote",
-                path=weaviate_url,
                 port=8080 if weaviate_url == "localhost" else 80,
             )
         except Exception as e:
@@ -74,6 +75,34 @@ repository = connect_to_remote_weaviate_repository()
 db_plot_html = None
 
 origins = ["*"]
+
+
+class ObjectType(Enum):
+    TERMINOLOGY = "terminology"
+    CONCEPT = "concept"
+    MAPPING = "mapping"
+
+
+def import_snomed_ct_task(model: str = "sentence-transformers/all-mpnet-base-v2"):
+    embedding_model = MPNetAdapter(model)
+    task = OLSTerminologyImportTask(embedding_model, "SNOMED CT", "snomed")
+    task.process_to_weaviate(repository)
+
+
+def import_ols_terminology_task(terminology_id, model: str = "sentence-transformers/all-mpnet-base-v2"):
+    embedding_model = MPNetAdapter(model)
+    task = OLSTerminologyImportTask(embedding_model, terminology_id, terminology_id)
+    task.process_to_weaviate(repository)
+
+
+async def import_jsonl_task(file: bytes, object_type: ObjectType):
+    with tempfile.NamedTemporaryFile(delete=False, mode="wb") as temp_file:
+        temp_file.write(file)
+        file_path = temp_file.name
+
+    await asyncio.to_thread(repository.import_from_jsonl, file_path, object_type.value)
+    os.remove(file_path)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -155,7 +184,7 @@ async def create_concept(id: str, concept_name: str, terminology_name: str):
 
 @app.get("/mappings", tags=["mappings"])
 async def get_all_mappings():
-    mappings = repository.get_mappings()
+    mappings = repository.get_mappings(sentence_embedder="sentence_transformers_all_mpnet_base_v2", limit=10)
     return mappings
 
 
@@ -204,6 +233,8 @@ async def get_closest_mappings_for_text(
 ):
     try:
         embedding_model = MPNetAdapter(model)
+        if repository.use_weaviate_vectorizer:
+            model = model.replace("-", "_").replace("/", "_")
         embedding = embedding_model.get_embedding(text)
         closest_mappings = repository.get_closest_mappings(embedding, True, terminology_name, model, limit)
         mappings = []
@@ -239,6 +270,8 @@ async def get_closest_mappings_for_dictionary(
 ):
     try:
         embedding_model = MPNetAdapter(model)
+        if repository.use_weaviate_vectorizer:
+            model = model.replace("-", "_").replace("/", "_")
         if not file or not file.filename:
             raise HTTPException(status_code=400, detail="No file was provided. Please upload a valid file.")
 
@@ -292,22 +325,18 @@ async def get_closest_mappings_for_dictionary(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def import_snomed_ct_task(model: str = "sentence-transformers/all-mpnet-base-v2"):
-    embedding_model = MPNetAdapter(model)
-    task = OLSTerminologyImportTask(embedding_model, "SNOMED CT", "snomed")
-    task.process_to_weaviate(repository)
-
-
-def import_ols_terminology_task(terminology_id, model: str = "sentence-transformers/all-mpnet-base-v2"):
-    embedding_model = MPNetAdapter(model)
-    task = OLSTerminologyImportTask(embedding_model, terminology_id, terminology_id)
-    task.process_to_weaviate(repository)
-
-
 @app.put("/import/terminology/snomed", description="Import whole SNOMED CT from OLS.", tags=["import", "tasks"])
 async def import_snomed_ct(background_tasks: BackgroundTasks, model: str = "sentence-transformers/all-mpnet-base-v2"):
     background_tasks.add_task(import_snomed_ct_task, model)
     return {"message": "SNOMED CT import started in the background"}
+
+
+@app.put("/import/jsonl", description="Import a JSONL file following the Weaviate schema", tags=["import"])
+async def import_jsonl(background_tasks: BackgroundTasks, object_type: ObjectType, file: UploadFile):
+    if not file.filename or not file.filename.endswith(".jsonl"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Only JSONL files are accepted.")
+    background_tasks.add_task(import_jsonl_task, file.file.read(), object_type)
+    return {"message": "JSONL import started in the background"}
 
 
 if __name__ == "__main__":
