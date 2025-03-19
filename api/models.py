@@ -29,7 +29,7 @@ class WeaviateClient(WeaviateRepository):
         )
 
     def __enter__(self):
-        return self.client
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         if self.client:
