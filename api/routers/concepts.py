@@ -1,24 +1,24 @@
 from typing import Annotated
 
 from datastew.embedding import MPNetAdapter
-from datastew.repository import WeaviateRepository
 from datastew.repository.model import Concept, Mapping
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.dependencies import get_client
+from api.models import WeaviateClient
 
 router = APIRouter(prefix="/concepts", tags=["concepts"], dependencies=[Depends(get_client)])
 
 
 @router.get("/")
-async def get_all_concepts(client: Annotated[WeaviateRepository, Depends(get_client)]):
+async def get_all_concepts(client: Annotated[WeaviateClient, Depends(get_client)]):
     concepts = client.get_all_concepts()
     return concepts
 
 
 @router.put("/{id}")
 async def create_concept(
-    id: str, concept_name: str, terminology_name: str, client: Annotated[WeaviateRepository, Depends(get_client)]
+    id: str, concept_name: str, terminology_name: str, client: Annotated[WeaviateClient, Depends(get_client)]
 ):
     try:
         terminology = client.get_terminology(terminology_name)
@@ -35,7 +35,7 @@ async def create_concept_and_attach_mapping(
     concept_name: str,
     terminology_name: str,
     text: str,
-    client: Annotated[WeaviateRepository, Depends(get_client)],
+    client: Annotated[WeaviateClient, Depends(get_client)],
     model: str = "sentence-transformers/all-mpnet-base-v2",
 ):
     try:

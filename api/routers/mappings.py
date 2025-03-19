@@ -4,17 +4,17 @@ from typing import Annotated
 
 from datastew import DataDictionarySource
 from datastew.embedding import MPNetAdapter
-from datastew.repository import WeaviateRepository
 from datastew.repository.model import Mapping
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from api.dependencies import get_client
+from api.models import WeaviateClient
 
 router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(get_client)])
 
 
 @router.get("/")
-async def get_all_mappings(client: Annotated[WeaviateRepository, Depends(get_client)]):
+async def get_all_mappings(client: Annotated[WeaviateClient, Depends(get_client)]):
     mappings = client.get_mappings(sentence_embedder="sentence_transformers_all_mpnet_base_v2", limit=10)
     return mappings
 
@@ -23,7 +23,7 @@ async def get_all_mappings(client: Annotated[WeaviateRepository, Depends(get_cli
 async def create_mapping(
     concept_id: str,
     text: str,
-    client: Annotated[WeaviateRepository, Depends(get_client)],
+    client: Annotated[WeaviateClient, Depends(get_client)],
     model: str = "sentence-transformers/all-mpnet-base-v2",
 ):
     try:
@@ -40,7 +40,7 @@ async def create_mapping(
 
 @router.post("/")
 async def get_closest_mappings_for_text(
-    client: Annotated[WeaviateRepository, Depends(get_client)],
+    client: Annotated[WeaviateClient, Depends(get_client)],
     text: str = Form(...),
     terminology_name: str = Form("SNOMED CT"),
     model: str = Form("sentence-transformers/all-mpnet-base-v2"),
@@ -76,7 +76,7 @@ async def get_closest_mappings_for_text(
 # Endpoint to get mappings for a data dictionary source
 @router.post("/dict", description="Get mappings for a data dictionary source.")
 async def get_closest_mappings_for_dictionary(
-    client: Annotated[WeaviateRepository, Depends(get_client)],
+    client: Annotated[WeaviateClient, Depends(get_client)],
     file: UploadFile = File(...),
     model: str = Form("sentence-transformers/all-mpnet-base-v2"),
     terminology_name: str = Form("SNOMED CT"),
