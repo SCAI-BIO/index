@@ -25,6 +25,7 @@ class WeaviateClient(WeaviateRepository):
             use_weaviate_vectorizer=bool(huggingface_key),
             huggingface_key=huggingface_key,
             mode="remote",
+            path=weaviate_url,
             port=8080 if weaviate_url == "localhost" else 80,
         )
 
