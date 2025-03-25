@@ -42,10 +42,13 @@ async def create_concept_and_attach_mapping(
         terminology = client.get_terminology(terminology_name)
         concept = Concept(terminology, concept_name, id)
         client.store(concept)
-        embedding_model = MPNetAdapter(model)
-        embedding = embedding_model.get_embedding(text)
-        model_name = embedding_model.get_model_name()
-        mapping = Mapping(concept, text, list(embedding), model_name)
+        if client.use_weaviate_vectorizer:
+            mapping = Mapping(concept, text)
+        else:
+            embedding_model = MPNetAdapter(model)
+            embedding = embedding_model.get_embedding(text)
+            model_name = embedding_model.get_model_name()
+            mapping = Mapping(concept, text, list(embedding), model_name)
         client.store(mapping)
         return {"message": f"Concept {id} created successfully"}
     except Exception as e:

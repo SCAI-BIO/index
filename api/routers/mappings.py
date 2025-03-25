@@ -14,8 +14,14 @@ router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(
 
 
 @router.get("/")
-async def get_all_mappings(client: Annotated[WeaviateClient, Depends(get_client)]):
-    mappings = client.get_mappings(sentence_embedder="sentence_transformers_all_mpnet_base_v2", limit=10)
+async def get_all_mappings(
+    client: Annotated[WeaviateClient, Depends(get_client)],
+    model: str = "sentence-transformers/all-mpnet-base-v2",
+    limit: int = 10,
+):
+    if client.use_weaviate_vectorizer:
+        model = model.replace("-", "_").replace("/", "_")
+    mappings = client.get_mappings(sentence_embedder=model, limit=limit)
     return mappings
 
 
@@ -28,10 +34,13 @@ async def create_mapping(
 ):
     try:
         concept = client.get_concept(concept_id)
-        embedding_model = MPNetAdapter(model)
-        embedding = embedding_model.get_embedding(text)
-        model_name = embedding_model.get_model_name()
-        mapping = Mapping(concept, text, list(embedding), model_name)
+        if client.use_weaviate_vectorizer:
+            mapping = Mapping(concept, text)
+        else:
+            embedding_model = MPNetAdapter(model)
+            embedding = embedding_model.get_embedding(text)
+            model_name = embedding_model.get_model_name()
+            mapping = Mapping(concept, text, list(embedding), model_name)
         client.store(mapping)
         return {"message": "Mapping created successfully"}
     except Exception as e:
@@ -48,8 +57,6 @@ async def get_closest_mappings_for_text(
 ):
     try:
         embedding_model = MPNetAdapter(model)
-        if client.use_weaviate_vectorizer:
-            model = model.replace("-", "_").replace("/", "_")
         embedding = embedding_model.get_embedding(text)
         closest_mappings = client.get_closest_mappings(embedding, True, terminology_name, model, limit)
         mappings = []
