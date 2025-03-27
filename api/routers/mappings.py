@@ -58,6 +58,8 @@ async def get_closest_mappings_for_text(
     try:
         embedding_model = MPNetAdapter(model)
         embedding = embedding_model.get_embedding(text)
+        if client.use_weaviate_vectorizer:
+            model = model.replace("-", "_").replace("/", "_")
         closest_mappings = client.get_closest_mappings(embedding, True, terminology_name, model, limit)
         mappings = []
         for mapping_result in closest_mappings:
