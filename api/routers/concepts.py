@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from datastew.embedding import MPNetAdapter
+from datastew.embedding import Vectorizer
 from datastew.repository.model import Concept, Mapping
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -11,9 +11,8 @@ router = APIRouter(prefix="/concepts", tags=["concepts"], dependencies=[Depends(
 
 
 @router.get("/")
-async def get_all_concepts(client: Annotated[WeaviateClient, Depends(get_client)]):
-    concepts = client.get_all_concepts()
-    return concepts
+async def get_all_concepts(client: Annotated[WeaviateClient, Depends(get_client)], limit: int = 10, offset: int = 0):
+    return client.get_concepts(limit=limit, offset=offset)
 
 
 @router.put("/{id}")
@@ -45,9 +44,9 @@ async def create_concept_and_attach_mapping(
         if client.use_weaviate_vectorizer:
             mapping = Mapping(concept, text)
         else:
-            embedding_model = MPNetAdapter(model)
+            embedding_model = Vectorizer(model)
             embedding = embedding_model.get_embedding(text)
-            model_name = embedding_model.get_model_name()
+            model_name = embedding_model.model_name
             mapping = Mapping(concept, text, list(embedding), model_name)
         client.store(mapping)
         return {"message": f"Concept {id} created successfully"}

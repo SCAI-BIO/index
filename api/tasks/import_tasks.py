@@ -2,7 +2,7 @@ import asyncio
 import os
 import tempfile
 
-from datastew.embedding import MPNetAdapter
+from datastew.embedding import Vectorizer
 from datastew.process.ols import OLSTerminologyImportTask
 
 from api.models import ObjectSchema, WeaviateClient
@@ -10,7 +10,7 @@ from api.models import ObjectSchema, WeaviateClient
 
 def import_snomed_ct_task(model: str = "sentence-transformers/all-mpnet-base-v2"):
     with WeaviateClient() as client:
-        embedding_model = MPNetAdapter(model)
+        embedding_model = Vectorizer(model)
         task = OLSTerminologyImportTask(embedding_model, "SNOMED CT", "snomed")
         task.process_to_weaviate(client)
 
@@ -20,7 +20,7 @@ def import_ols_terminology_task(
     model: str = "sentence-transformers/all-mpnet-base-v2",
 ):
     with WeaviateClient() as client:
-        embedding_model = MPNetAdapter(model)
+        embedding_model = Vectorizer(model)
         task = OLSTerminologyImportTask(embedding_model, terminology_id, terminology_id)
         task.process_to_weaviate(client)
 
