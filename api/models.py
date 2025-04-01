@@ -1,6 +1,7 @@
 import logging
 import os
 from enum import Enum
+from urllib.parse import urlparse
 
 from datastew.repository import WeaviateRepository
 from datastew.repository.weaviate_schema import MappingSchema
@@ -11,8 +12,16 @@ from weaviate.classes.config import Configure, DataType, Property
 load_dotenv()
 
 weaviate_url = os.getenv("WEAVIATE_URL", "localhost")
-ollama_url = os.getenv("OLLAMA_URL", "http://host.docker.internal:11435")
+ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
 logger = logging.getLogger("uvicorn.info")
+
+# If Weaviate is running inside a Docker container, pass the Ollama API URL with host.docker.internal.
+# Use http://localhost:11434 if WeaviateRepository `mode` is set to memory
+parsed_ollama_url = urlparse(ollama_url)
+if parsed_ollama_url.hostname == "localhost":
+    modified_ollama_url = f"http://host.docker.internal:{parsed_ollama_url.port}"
+else:
+    modified_ollama_url = ollama_url
 
 
 class ObjectSchema(Enum):
@@ -27,7 +36,7 @@ mapping_schema = MappingSchema(
         Configure.NamedVectors.text2vec_ollama(
             name="nomic_embed_text",
             source_properties=["text"],
-            api_endpoint=ollama_url,
+            api_endpoint=modified_ollama_url,
             model="nomic-embed-text",
             vectorize_collection_name=False,
         )
