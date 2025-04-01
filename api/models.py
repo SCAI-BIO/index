@@ -5,12 +5,13 @@ from enum import Enum
 from datastew.repository import WeaviateRepository
 from datastew.repository.weaviate_schema import MappingSchema
 from dotenv import load_dotenv
+
 from weaviate.classes.config import Configure, DataType, Property
 
 load_dotenv()
 
 weaviate_url = os.getenv("WEAVIATE_URL", "localhost")
-ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+ollama_url = os.getenv("OLLAMA_URL", "http://host.docker.internal:11435")
 logger = logging.getLogger("uvicorn.info")
 
 
