@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from api.dependencies import get_client
 from api.models import WeaviateClient
 
+ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
 router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(get_client)])
 
 
@@ -38,7 +39,7 @@ async def create_mapping(
         if client.use_weaviate_vectorizer:
             mapping = Mapping(concept, text)
         else:
-            embedding_model = Vectorizer(model)
+            embedding_model = Vectorizer(model, host=ollama_url)
             embedding = embedding_model.get_embedding(text)
             model_name = embedding_model.model_name
             mapping = Mapping(concept, text, list(embedding), model_name)
@@ -46,6 +47,12 @@ async def create_mapping(
         return {"message": "Mapping created successfully"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to create mapping: {str(e)}")
+
+
+@router.get("/total-number")
+async def get_total_number_of_mappings(client: Annotated[WeaviateClient, Depends(get_client)]):
+    mapping = client.client.collections.get("Mapping")
+    return mapping.aggregate.over_all(total_count=True).total_count
 
 
 @router.post("/")
@@ -57,7 +64,7 @@ async def get_closest_mappings_for_text(
     limit: int = Form(5),
 ):
     try:
-        embedding_model = Vectorizer(model)
+        embedding_model = Vectorizer(model, host=ollama_url)
         embedding = embedding_model.get_embedding(text)
         if client.use_weaviate_vectorizer:
             model = model.replace("-", "_").replace("/", "_")
@@ -95,7 +102,7 @@ async def get_closest_mappings_for_dictionary(
     limit: int = Form(5),
 ):
     try:
-        embedding_model = Vectorizer(model)
+        embedding_model = Vectorizer(model, host=ollama_url)
         if client.use_weaviate_vectorizer:
             model = model.replace("-", "_").replace("/", "_")
         if not file or not file.filename:
