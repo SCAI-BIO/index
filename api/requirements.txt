@@ -2,5 +2,5 @@ httpx~=0.28.1
 uvicorn~=0.34.0
 fastapi~=0.115.1
 starlette~=0.46.1
-datastew~=0.5.3
+datastew~=0.5.4
 python-multipart~=0.0.20
