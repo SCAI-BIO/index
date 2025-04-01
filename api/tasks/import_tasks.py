@@ -5,9 +5,7 @@ import tempfile
 from datastew.embedding import Vectorizer
 from datastew.process.ols import OLSTerminologyImportTask
 
-from api.models import ObjectSchema, WeaviateClient
-
-ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+from api.models import ObjectSchema, WeaviateClient, ollama_url
 
 
 def import_snomed_ct_task(model: str = "sentence-transformers/all-mpnet-base-v2"):

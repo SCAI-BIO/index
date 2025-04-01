@@ -1,4 +1,3 @@
-import os
 from typing import Annotated
 
 from datastew.embedding import Vectorizer
@@ -6,9 +5,8 @@ from datastew.repository.model import Concept, Mapping
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.dependencies import get_client
-from api.models import WeaviateClient
+from api.models import WeaviateClient, ollama_url
 
-ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
 router = APIRouter(prefix="/concepts", tags=["concepts"], dependencies=[Depends(get_client)])
 
 

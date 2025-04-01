@@ -8,9 +8,8 @@ from datastew.repository.model import Mapping
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from api.dependencies import get_client
-from api.models import WeaviateClient
+from api.models import WeaviateClient, ollama_url
 
-ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
 router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(get_client)])
 
 
