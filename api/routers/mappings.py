@@ -16,7 +16,7 @@ router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(
 @router.get("/")
 async def get_all_mappings(
     client: Annotated[WeaviateClient, Depends(get_client)],
-    model: str = "sentence-transformers/all-mpnet-base-v2",
+    model: str = "nomic-embed-text",
     limit: int = 10,
     offset: int = 0,
 ):
@@ -31,7 +31,7 @@ async def create_mapping(
     concept_id: str,
     text: str,
     client: Annotated[WeaviateClient, Depends(get_client)],
-    model: str = "sentence-transformers/all-mpnet-base-v2",
+    model: str = "nomic-embed-text",
 ):
     try:
         concept = client.get_concept(concept_id)
@@ -48,18 +48,12 @@ async def create_mapping(
         raise HTTPException(status_code=400, detail=f"Failed to create mapping: {str(e)}")
 
 
-@router.get("/total-number")
-async def get_total_number_of_mappings(client: Annotated[WeaviateClient, Depends(get_client)]):
-    mapping = client.client.collections.get("Mapping")
-    return mapping.aggregate.over_all(total_count=True).total_count
-
-
 @router.post("/")
 async def get_closest_mappings_for_text(
     client: Annotated[WeaviateClient, Depends(get_client)],
     text: str = Form(...),
-    terminology_name: str = Form("SNOMED CT"),
-    model: str = Form("sentence-transformers/all-mpnet-base-v2"),
+    terminology_name: str = Form("OHDSI"),
+    model: str = Form("nomic-embed-text"),
     limit: int = Form(5),
 ):
     try:
@@ -87,6 +81,12 @@ async def get_closest_mappings_for_text(
         return mappings
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to get closest mappings: {str(e)}")
+
+
+@router.get("/total-number")
+async def get_total_number_of_mappings(client: Annotated[WeaviateClient, Depends(get_client)]):
+    mapping = client.client.collections.get("Mapping")
+    return mapping.aggregate.over_all(total_count=True).total_count
 
 
 # Endpoint to get mappings for a data dictionary source
