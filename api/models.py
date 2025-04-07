@@ -15,8 +15,8 @@ weaviate_url = os.getenv("WEAVIATE_URL", "localhost")
 ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
 logger = logging.getLogger("uvicorn.info")
 
-# If Weaviate is running inside a Docker container, pass the Ollama API URL with host.docker.internal.
-# Use http://localhost:11434 if WeaviateRepository `mode` is set to memory
+# If Weaviate is running inside a Docker container, pass the Ollama API URL with host.docker.internal:port.
+# Use http://localhost:port if WeaviateRepository `mode` is set to memory
 parsed_ollama_url = urlparse(ollama_url)
 if parsed_ollama_url.hostname == "localhost":
     modified_ollama_url = f"http://host.docker.internal:{parsed_ollama_url.port}"
