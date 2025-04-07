@@ -3,12 +3,12 @@ import tempfile
 from typing import Annotated
 
 from datastew import DataDictionarySource
-from datastew.embedding import MPNetAdapter
+from datastew.embedding import Vectorizer
 from datastew.repository.model import Mapping
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from api.dependencies import get_client
-from api.models import WeaviateClient
+from api.models import WeaviateClient, ollama_url
 
 router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(get_client)])
 
@@ -16,12 +16,13 @@ router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(
 @router.get("/")
 async def get_all_mappings(
     client: Annotated[WeaviateClient, Depends(get_client)],
-    model: str = "sentence-transformers/all-mpnet-base-v2",
+    model: str = "nomic-embed-text",
     limit: int = 10,
+    offset: int = 0,
 ):
     if client.use_weaviate_vectorizer:
         model = model.replace("-", "_").replace("/", "_")
-    mappings = client.get_mappings(sentence_embedder=model, limit=limit)
+    mappings = client.get_mappings(sentence_embedder=model, limit=limit, offset=offset)
     return mappings
 
 
@@ -30,16 +31,16 @@ async def create_mapping(
     concept_id: str,
     text: str,
     client: Annotated[WeaviateClient, Depends(get_client)],
-    model: str = "sentence-transformers/all-mpnet-base-v2",
+    model: str = "nomic-embed-text",
 ):
     try:
         concept = client.get_concept(concept_id)
         if client.use_weaviate_vectorizer:
             mapping = Mapping(concept, text)
         else:
-            embedding_model = MPNetAdapter(model)
+            embedding_model = Vectorizer(model, host=ollama_url)
             embedding = embedding_model.get_embedding(text)
-            model_name = embedding_model.get_model_name()
+            model_name = embedding_model.model_name
             mapping = Mapping(concept, text, list(embedding), model_name)
         client.store(mapping)
         return {"message": "Mapping created successfully"}
@@ -51,12 +52,12 @@ async def create_mapping(
 async def get_closest_mappings_for_text(
     client: Annotated[WeaviateClient, Depends(get_client)],
     text: str = Form(...),
-    terminology_name: str = Form("SNOMED CT"),
-    model: str = Form("sentence-transformers/all-mpnet-base-v2"),
+    terminology_name: str = Form("OHDSI"),
+    model: str = Form("nomic-embed-text"),
     limit: int = Form(5),
 ):
     try:
-        embedding_model = MPNetAdapter(model)
+        embedding_model = Vectorizer(model, host=ollama_url)
         embedding = embedding_model.get_embedding(text)
         if client.use_weaviate_vectorizer:
             model = model.replace("-", "_").replace("/", "_")
@@ -82,6 +83,12 @@ async def get_closest_mappings_for_text(
         raise HTTPException(status_code=400, detail=f"Failed to get closest mappings: {str(e)}")
 
 
+@router.get("/total-number")
+async def get_total_number_of_mappings(client: Annotated[WeaviateClient, Depends(get_client)]):
+    mapping = client.client.collections.get("Mapping")
+    return mapping.aggregate.over_all(total_count=True).total_count
+
+
 # Endpoint to get mappings for a data dictionary source
 @router.post("/dict", description="Get mappings for a data dictionary source.")
 async def get_closest_mappings_for_dictionary(
@@ -94,7 +101,7 @@ async def get_closest_mappings_for_dictionary(
     limit: int = Form(5),
 ):
     try:
-        embedding_model = MPNetAdapter(model)
+        embedding_model = Vectorizer(model, host=ollama_url)
         if client.use_weaviate_vectorizer:
             model = model.replace("-", "_").replace("/", "_")
         if not file or not file.filename:

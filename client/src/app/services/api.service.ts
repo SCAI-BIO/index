@@ -25,7 +25,7 @@ export class ApiService {
   }
 
   fetchClosestMappingsQuery(formData: FormData): Observable<Mapping[]> {
-    return this.http.post<Mapping[]>(`${this.API_URL}/mappings`, formData, {
+    return this.http.post<Mapping[]>(`${this.API_URL}/mappings/`, formData, {
       headers: new HttpHeaders({ Accept: 'application/json' }),
     });
   }

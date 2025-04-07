@@ -11,4 +11,5 @@ router = APIRouter(prefix="/models", tags=["models"], dependencies=[Depends(get_
 @router.get("/")
 async def get_all_models(client: Annotated[WeaviateClient, Depends(get_client)]):
     vectorizers = client.get_all_sentence_embedders()
+    vectorizers = [v.replace("_", '-') for v in vectorizers]
     return vectorizers

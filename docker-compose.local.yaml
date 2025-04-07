@@ -23,11 +23,20 @@ services:
       - ollama
 
   weaviate:
-    image: cr.weaviate.io/semitechnologies/weaviate:1.24.20
+    image: cr.weaviate.io/semitechnologies/weaviate:1.30.0
     ports:
-      - "8080:8080"
+      - 8080:8080
+      - 50051:50051
     volumes:
       - weaviate_data:/var/lib/weaviate
+    restart: on-failure:0
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: 'var/lib/weaviate'
+      ENABLE_API_BASED_MODULES: 'true'
+      ENABLE_MODULES: 'text2vec-ollama'
+      CLUSTER_HOSTNAME: 'node1'
 
   ollama:
     image: ollama

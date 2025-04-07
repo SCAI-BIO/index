@@ -1,19 +1,24 @@
 from typing import Annotated
 
-from datastew.embedding import MPNetAdapter
+from datastew.embedding import Vectorizer
 from datastew.repository.model import Concept, Mapping
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.dependencies import get_client
-from api.models import WeaviateClient
+from api.models import WeaviateClient, ollama_url
 
 router = APIRouter(prefix="/concepts", tags=["concepts"], dependencies=[Depends(get_client)])
 
 
 @router.get("/")
-async def get_all_concepts(client: Annotated[WeaviateClient, Depends(get_client)]):
-    concepts = client.get_all_concepts()
-    return concepts
+async def get_all_concepts(client: Annotated[WeaviateClient, Depends(get_client)], limit: int = 10, offset: int = 0):
+    return client.get_concepts(limit=limit, offset=offset)
+
+
+@router.get("/total-number")
+async def get_total_number_of_concepts(client: Annotated[WeaviateClient, Depends(get_client)]):
+    concept = client.client.collections.get("Concept")
+    return concept.aggregate.over_all(total_count=True).total_count
 
 
 @router.put("/{id}")
@@ -45,9 +50,9 @@ async def create_concept_and_attach_mapping(
         if client.use_weaviate_vectorizer:
             mapping = Mapping(concept, text)
         else:
-            embedding_model = MPNetAdapter(model)
+            embedding_model = Vectorizer(model, host=ollama_url)
             embedding = embedding_model.get_embedding(text)
-            model_name = embedding_model.get_model_name()
+            model_name = embedding_model.model_name
             mapping = Mapping(concept, text, list(embedding), model_name)
         client.store(mapping)
         return {"message": f"Concept {id} created successfully"}
