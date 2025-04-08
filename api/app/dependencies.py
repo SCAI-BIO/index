@@ -1,5 +1,5 @@
 
-from api.models import WeaviateClient
+from app.models import WeaviateClient
 
 
 async def get_client():

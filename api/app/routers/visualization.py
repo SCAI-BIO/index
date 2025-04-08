@@ -1,11 +1,10 @@
 from typing import Annotated
 
+from app.dependencies import get_client
+from app.models import WeaviateClient
 from datastew.visualisation import get_plot_for_current_database_state
 from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse
-
-from api.dependencies import get_client
-from api.models import WeaviateClient
 
 router = APIRouter(prefix="/visualization", tags=["visualization"], dependencies=[Depends(get_client)])
 

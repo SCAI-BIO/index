@@ -1,9 +1,8 @@
 from typing import Annotated
 
+from app.dependencies import get_client
+from app.models import WeaviateClient
 from fastapi import APIRouter, Depends
-
-from api.dependencies import get_client
-from api.models import WeaviateClient
 
 router = APIRouter(prefix="/models", tags=["models"], dependencies=[Depends(get_client)])
 
