@@ -4,15 +4,15 @@ from datastew.embedding import Vectorizer
 from datastew.repository.model import Concept, Mapping
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.dependencies import get_client
-from api.models import WeaviateClient, ollama_url
+from app.dependencies import get_client
+from app.models import WeaviateClient, ollama_url
 
 router = APIRouter(prefix="/concepts", tags=["concepts"], dependencies=[Depends(get_client)])
 
 
 @router.get("/")
 async def get_all_concepts(client: Annotated[WeaviateClient, Depends(get_client)], limit: int = 10, offset: int = 0):
-    return client.get_concepts(limit=limit, offset=offset)
+    return client.get_concepts(limit=limit, offset=offset).items
 
 
 @router.get("/total-number")

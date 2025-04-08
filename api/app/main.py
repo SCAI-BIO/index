@@ -1,9 +1,14 @@
+from app.routers import (
+    concepts,
+    imports,
+    mappings,
+    models,
+    terminologies,
+    visualization,
+)
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
-
-from api.routers import (concepts, imports, mappings, models, terminologies,
-                         visualization)
 
 app = FastAPI(
     title="INDEX",

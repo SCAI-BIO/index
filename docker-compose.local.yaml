@@ -21,6 +21,8 @@ services:
     depends_on:
       - weaviate
       - ollama
+    environment:
+      WEAVIATE_URL: "http://weaviate:8080"
 
   weaviate:
     image: cr.weaviate.io/semitechnologies/weaviate:1.30.0

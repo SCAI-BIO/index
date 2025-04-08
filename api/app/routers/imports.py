@@ -1,11 +1,12 @@
+from app.dependencies import get_client
+from app.models import ObjectSchema
+from app.tasks.import_tasks import (
+    import_jsonl_task,
+    import_ols_terminology_task,
+    import_snomed_ct_task,
+)
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from starlette.background import BackgroundTasks
-
-from api.dependencies import get_client
-from api.models import ObjectSchema
-from api.tasks.import_tasks import (import_jsonl_task,
-                                    import_ols_terminology_task,
-                                    import_snomed_ct_task)
 
 router = APIRouter(prefix="/imports", tags=["imports"], dependencies=[Depends(get_client)])
 
@@ -39,4 +40,3 @@ async def import_jsonl(
         raise HTTPException(status_code=400, detail="Invalid file type. Only JSONL files are accepted.")
     background_tasks.add_task(import_jsonl_task, file.file.read(), object_type)
     return {"message": "JSONL import started in the background"}
-

@@ -1,13 +1,15 @@
 # Define the base image
 FROM python:3.11
 
-COPY main.py .
+WORKDIR /api
 
-# Install API requirements
-COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
+COPY ./requirements.txt /api/requirements.txt
+
+RUN pip install -r /api/requirements.txt
+
+COPY ./app /api/app
 
 EXPOSE 80
 
 # API entry point
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]

@@ -1,10 +1,9 @@
 from typing import Annotated
 
+from app.dependencies import get_client
+from app.models import WeaviateClient
 from datastew.repository.model import Terminology
 from fastapi import APIRouter, Depends, HTTPException
-
-from api.dependencies import get_client
-from api.models import WeaviateClient
 
 router = APIRouter(prefix="/terminologies", tags=["terminologies"], dependencies=[Depends(get_client)])
 

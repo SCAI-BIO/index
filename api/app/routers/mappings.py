@@ -7,8 +7,8 @@ from datastew.embedding import Vectorizer
 from datastew.repository.model import Mapping
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
-from api.dependencies import get_client
-from api.models import WeaviateClient, ollama_url
+from app.dependencies import get_client
+from app.models import WeaviateClient, ollama_url
 
 router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(get_client)])
 
@@ -23,7 +23,7 @@ async def get_all_mappings(
     if client.use_weaviate_vectorizer:
         model = model.replace("-", "_").replace("/", "_")
     mappings = client.get_mappings(sentence_embedder=model, limit=limit, offset=offset)
-    return mappings
+    return mappings.items
 
 
 @router.put("/")

@@ -11,10 +11,11 @@ from weaviate.classes.config import Configure, DataType, Property
 
 load_dotenv()
 
-weaviate_url = os.getenv("WEAVIATE_URL", "localhost")
+weaviate_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
 ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
 logger = logging.getLogger("uvicorn.info")
 
+parsed_weaviate_url = urlparse(weaviate_url)
 # If Weaviate is running inside a Docker container, pass the Ollama API URL with host.docker.internal:port.
 # Use http://localhost:port if WeaviateRepository `mode` is set to memory
 parsed_ollama_url = urlparse(ollama_url)
@@ -49,8 +50,8 @@ class WeaviateClient(WeaviateRepository):
         super().__init__(
             use_weaviate_vectorizer=True,
             mode="remote",
-            path=weaviate_url,
-            port=8080 if weaviate_url == "localhost" else 80,
+            path=str(parsed_weaviate_url.hostname),
+            port=parsed_weaviate_url.port if parsed_weaviate_url.port else 80,
             mapping_schema=mapping_schema,
         )
 

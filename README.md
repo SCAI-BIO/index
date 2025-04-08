@@ -13,7 +13,7 @@ INDEX is an intelligent data steward toolbox that leverages Large Language Model
 ```bash
 cd api
 pip install -r requirements.txt
-uvicorn routes:app --reload --port 5000
+uvicorn app.main:app --reload --port 5000
 ```
 
 Navigate to [localhost:5000](http://localhost:5000) to access the backend.
