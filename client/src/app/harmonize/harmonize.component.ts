@@ -6,6 +6,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -17,9 +18,10 @@ import { RouterModule } from '@angular/router';
 
 import { Subscription } from 'rxjs';
 
-import { Response } from '../interfaces/mapping';
+import { Mapping, Response } from '../interfaces/mapping';
 import { ApiService } from '../services/api.service';
 import { FileService } from '../services/file.service';
+import { TopMatchesDialogComponent } from '../top-matches-dialog/top-matches-dialog.component';
 
 @Component({
   selector: 'app-harmonize',
@@ -48,22 +50,25 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     'description',
     'conceptID',
     'prefLabel',
+    'actions',
   ];
   embeddingModels: string[] = [];
   fileName: string = '';
   fileToUpload: File | null = null;
-  formData = new FormData();
+  harmonizeFormData = new FormData();
   harmonizeForm: FormGroup;
   loading: boolean = false;
   requiredFileType: string =
     '.csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   terminologies: string[] = [];
+  topMatches: Mapping[] = [];
   private subscriptions: Subscription[] = [];
 
   constructor(
     private apiService: ApiService,
     private fileService: FileService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private dialog: MatDialog
   ) {
     this.harmonizeForm = this.fb.group({
       selectedTerminology: ['', Validators.required],
@@ -89,7 +94,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
 
     this.loading = true;
     const sub = this.apiService
-      .fetchClosestMappingsDictionary(this.formData)
+      .fetchClosestMappingsDictionary(this.harmonizeFormData)
       .subscribe({
         next: (responses) => {
           this.closestMappings = responses;
@@ -134,6 +139,44 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     this.subscriptions.push(sub);
   }
 
+  fetchTopMatches(description: string, row: Response): void {
+    const { selectedEmbeddingModel, selectedTerminology } =
+      this.harmonizeForm.value;
+    const queryFormData = new FormData();
+    queryFormData.set('text', description);
+    queryFormData.set('model', selectedEmbeddingModel);
+    queryFormData.set('terminology_name', selectedTerminology);
+    queryFormData.set('limit', '10');
+
+    this.loading = true;
+    const sub = this.apiService
+      .fetchClosestMappingsQuery(queryFormData)
+      .subscribe({
+        next: (mappings) => {
+          this.loading = false;
+          const dialogRef = this.dialog.open(TopMatchesDialogComponent, {
+            width: '1000px',
+            data: { matches: mappings, variable: row.variable },
+          });
+
+          dialogRef.afterClosed().subscribe((selectedMapping: Mapping) => {
+            if (selectedMapping) {
+              row.mappings[0] = selectedMapping;
+              this.dataSource.data = [...this.closestMappings];
+            }
+          });
+        },
+        error: (err) => {
+          console.error('Error fetching closest mappings', err);
+          this.loading = false;
+          const errorMessage =
+            err.error?.message || err.message || 'Unknown error occurred';
+          alert(`An error occurred while fetching mappings: ${errorMessage}`);
+        },
+      });
+    this.subscriptions.push(sub);
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
   }
@@ -148,7 +191,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     if (input.files && input.files.length > 0) {
       this.fileToUpload = input.files[0];
       this.fileName = this.fileToUpload.name;
-      this.formData.set('file', this.fileToUpload);
+      this.harmonizeFormData.set('file', this.fileToUpload);
     }
   }
 
@@ -161,10 +204,10 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
         selectedTerminology,
       } = this.harmonizeForm.value;
 
-      this.formData.set('variable_field', variableField);
-      this.formData.set('description_field', descriptionField);
-      this.formData.set('model', selectedEmbeddingModel);
-      this.formData.set('terminology_name', selectedTerminology);
+      this.harmonizeFormData.set('variable_field', variableField);
+      this.harmonizeFormData.set('description_field', descriptionField);
+      this.harmonizeFormData.set('model', selectedEmbeddingModel);
+      this.harmonizeFormData.set('terminology_name', selectedTerminology);
 
       this.fetchClosestMappings();
     } else {
