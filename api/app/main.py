@@ -11,9 +11,9 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 
 app = FastAPI(
-    title="INDEX",
+    title="KITSUNE",
     description="<div id=info-text><h1>Introduction</h1>"
-    "INDEX uses vector embeddings from variable descriptions to suggest mappings for datasets based on "
+    "KITSUNE uses vector embeddings from variable descriptions to suggest mappings for datasets based on "
     "their semantic similarity. Mappings are stored with their vector representations in a knowledge "
     "base, where they can be used for subsequent harmonization tasks, potentially improving the following "
     "suggestions with each iteration. Models for the computation as well as databases for storage are "

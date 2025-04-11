@@ -2,7 +2,7 @@ version: "3.12"
 
 services:
   frontend:
-    image: index-client
+    image: kitsune-client
     build:
       context: ./client
       dockerfile: Dockerfile.dev
@@ -12,7 +12,7 @@ services:
       - backend
 
   backend:
-    image: index-api
+    image: kitsune-api
     build:
       context: ./api
       dockerfile: Dockerfile.dev
