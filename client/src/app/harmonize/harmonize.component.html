@@ -193,11 +193,26 @@
         </td>
       </ng-container>
 
-      <!-- Concept Name Column (Displays the Cohort Name) -->
+      <!-- Concept Name Column (Displays the Concept Name) -->
       <ng-container matColumnDef="prefLabel">
         <th mat-header-cell *matHeaderCellDef>Concept Name</th>
         <td mat-cell *matCellDef="let element">
           {{ element.mappings[0].concept.name }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column (Displays the Top Matches on Request) -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <button
+            mat-raised-button
+            class="button-style"
+            color="primary"
+            (click)="fetchTopMatches(element.description, element)"
+          >
+            Show Matches
+          </button>
         </td>
       </ng-container>
 
