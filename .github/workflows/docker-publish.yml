@@ -34,8 +34,8 @@ jobs:
         file: ./api/Dockerfile.prod
         push: true
         tags: |
-          ghcr.io/scai-bio/index/api:latest
-          ghcr.io/scai-bio/index/api:${{ steps.version.outputs.VERSION }}
+          ghcr.io/scai-bio/kitsune/api:latest
+          ghcr.io/scai-bio/kitsune/api:${{ steps.version.outputs.VERSION }}
     - name: Build & push client
       uses: docker/build-push-action@v6
       with:
@@ -43,8 +43,8 @@ jobs:
         file: ./client/Dockerfile.prod
         push: true
         tags: |
-          ghcr.io/scai-bio/index/client:latest
-          ghcr.io/scai-bio/index/client:${{ steps.version.outputs.VERSION }}
+          ghcr.io/scai-bio/kitsune/client:latest
+          ghcr.io/scai-bio/kitsune/client:${{ steps.version.outputs.VERSION }}
     - name: Build & push ollama
       uses: docker/build-push-action@v6
       with:

@@ -1,40 +1,31 @@
-# INDEX – the Intelligent Data Steward Toolbox
+# Kitsune
 
-![GitHub Release](https://img.shields.io/github/v/release/SCAI-BIO/index)
+<img src="client/src/assets/logo.png" alt="Logo" width="135"/>
 
-INDEX is an intelligent data steward toolbox that leverages Large Language Model embeddings for automated Data-Harmonization.
+![GitHub Release](https://img.shields.io/github/v/release/SCAI-BIO/kitsune)
+
+*Kitsune* is a next-generation data steward and harmonization tool. Building on the legacy of systems like Usagi, Kitsune leverages LLM embeddings to intelligently map semantically similar terms even when their string representations differ. This results in more robust data harmonization and improved performance in real-world scenarios.
+
+(Formerly: INDEX – the Intelligent Data Steward Toolbox)
+
+
+## Features
+
+- **LLM Embeddings:** Uses state-of-the-art language models to capture semantic similarity.
+- **Intelligent Mapping:** Improves over traditional string matching with context-aware comparisons.
+- **Extensible:** Designed for integration into modern data harmonization pipelines.
+
 
 ## Installation
 
-### Local Development Server
-
-#### Starting the backend
-
-```bash
-cd api
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 5000
-```
-
-Navigate to [localhost:5000](http://localhost:5000) to access the backend.
-
-#### Starting the frontend
-
-```bash
-cd client
-ng serve
-```
-
-Navigate to [localhost:4200](http://localhost:4200) to access the frontend.
-
-### Docker
-
-You can start both frontend and API using docker-compose:
+Run the frontend client, api vector database and local embedding model using the local docker-compose file: 
 
 ```bash
 docker-compose -f docker-compose.local.yaml up
 ```
 
-## Configuration
+You can access the frontend on [localhost:4200](localhost:4200)
 
-_TODO: Add configuration instructions_
+### Initial Data import
+
+#TODO @mehmetcanay
