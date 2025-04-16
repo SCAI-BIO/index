@@ -48,7 +48,25 @@ services:
     ports:
       - "11434:11434"
 
-volumes:
+  importer:
+    image: alpine:latest
+    depends_on:
+      - backend
+      - ollama
+      - weaviate
+    entrypoint: >
+      sh -c "
+        apk add --no-cache curl >/dev/null;
+        echo 'Waiting for backend to be ready...';
+        until curl -s http://backend:80/docs > dev/null; do
+          echo 'Still waiting...';
+          sleep 2;
+        done;
+        echo 'Trigger OLS import...';
+        curl -X PUT 'http://backend:80/imports/terminology?terminology_id=doid'
+      "
+    restart: "no"
 
+volumes:
   weaviate_data:
     driver: local
