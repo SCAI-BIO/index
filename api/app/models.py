@@ -3,15 +3,15 @@ import os
 from enum import Enum
 from urllib.parse import urlparse
 
+from datastew.embedding import Vectorizer
 from datastew.repository import WeaviateRepository
-from datastew.repository.weaviate_schema import MappingSchema
 from dotenv import load_dotenv
-
-from weaviate.classes.config import Configure, DataType, Property
 
 load_dotenv()
 
 weaviate_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+model_name = os.getenv("MODEL_NAME", "sentence-transformers/all-MiniLM")
+hugging_face_api_key = os.getenv("HF_KEY", None)
 ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
 logger = logging.getLogger("uvicorn.info")
 
@@ -31,28 +31,13 @@ class ObjectSchema(Enum):
     MAPPING = "mapping"
 
 
-mapping_schema = MappingSchema(
-    properties=[Property(name="text", data_type=DataType.TEXT)],
-    vectorizer_config=[
-        Configure.NamedVectors.text2vec_ollama(
-            name="nomic_embed_text",
-            source_properties=["text"],
-            api_endpoint=modified_ollama_url,
-            model="nomic-embed-text",
-            vectorize_collection_name=False,
-        )
-    ],
-)
-
-
 class WeaviateClient(WeaviateRepository):
     def __init__(self):
         super().__init__(
-            use_weaviate_vectorizer=True,
             mode="remote",
             path=str(parsed_weaviate_url.hostname),
             port=parsed_weaviate_url.port if parsed_weaviate_url.port else 80,
-            mapping_schema=mapping_schema,
+            vectorizer=Vectorizer(model_name, api_key=hugging_face_api_key, host=modified_ollama_url),
         )
 
     def __enter__(self):
