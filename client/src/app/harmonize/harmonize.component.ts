@@ -16,7 +16,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 
-import { Subscription } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 
 import { Mapping, Response } from '../interfaces/mapping';
 import { ApiService } from '../services/api.service';
@@ -115,30 +115,6 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     this.subscriptions.push(sub);
   }
 
-  fetchEmbeddingModels(): void {
-    const sub = this.apiService.fetchEmbeddingModels().subscribe({
-      next: (models) => {
-        this.embeddingModels = models;
-      },
-      error: (err) => {
-        console.error('Error fetching embedding models', err);
-      },
-    });
-    this.subscriptions.push(sub);
-  }
-
-  fetchTerminologies(): void {
-    const sub = this.apiService.fetchTerminologies().subscribe({
-      next: (terminologies) => {
-        this.terminologies = terminologies.map((t) => t.name);
-      },
-      error: (err) => {
-        console.error('Error fetching terminologies', err);
-      },
-    });
-    this.subscriptions.push(sub);
-  }
-
   fetchTopMatches(description: string, row: Response): void {
     const { selectedEmbeddingModel, selectedTerminology } =
       this.harmonizeForm.value;
@@ -153,7 +129,6 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       .fetchClosestMappingsQuery(queryFormData)
       .subscribe({
         next: (mappings) => {
-          this.loading = false;
           const dialogRef = this.dialog.open(TopMatchesDialogComponent, {
             width: '1000px',
             data: { matches: mappings, variable: row.variable },
@@ -173,6 +148,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
             err.error?.message || err.message || 'Unknown error occurred';
           alert(`An error occurred while fetching mappings: ${errorMessage}`);
         },
+        complete: () => (this.loading = false),
       });
     this.subscriptions.push(sub);
   }
@@ -182,8 +158,23 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    this.fetchTerminologies();
-    this.fetchEmbeddingModels();
+    this.loading = true;
+
+    const sub = forkJoin({
+      terminologies: this.apiService.fetchTerminologies(),
+      models: this.apiService.fetchEmbeddingModels(),
+    }).subscribe({
+      next: ({ terminologies, models }) => {
+        this.terminologies = terminologies.map((t) => t.name);
+        this.embeddingModels = models;
+      },
+      error: (err) => {
+        console.error('Error loading data', err);
+        this.loading = false;
+      },
+      complete: () => (this.loading = false),
+    });
+    this.subscriptions.push(sub);
   }
 
   onFileSelect(event: Event): void {
