@@ -9,20 +9,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-weaviate_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
-model_name = os.getenv("MODEL_NAME", "sentence-transformers/all-MiniLM")
-hugging_face_api_key = os.getenv("HF_KEY", None)
-ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434")
+WEAVIATE_URL = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+MODEL_NAME = os.getenv("MODEL_NAME", "sentence-transformers/all-MiniLM")
+HUGGING_FACE_API_KEY = os.getenv("HF_KEY", None)
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 logger = logging.getLogger("uvicorn.info")
 
-parsed_weaviate_url = urlparse(weaviate_url)
+parsed_weaviate_url = urlparse(WEAVIATE_URL)
 # If Weaviate is running inside a Docker container, pass the Ollama API URL with host.docker.internal:port.
 # Use http://localhost:port if WeaviateRepository `mode` is set to memory
-parsed_ollama_url = urlparse(ollama_url)
+parsed_ollama_url = urlparse(OLLAMA_URL)
 if parsed_ollama_url.hostname == "localhost":
     modified_ollama_url = f"http://host.docker.internal:{parsed_ollama_url.port}"
 else:
-    modified_ollama_url = ollama_url
+    modified_ollama_url = OLLAMA_URL
 
 
 class ObjectSchema(Enum):
@@ -34,10 +34,10 @@ class ObjectSchema(Enum):
 class WeaviateClient(WeaviateRepository):
     def __init__(self):
         super().__init__(
-            mode="remote",
-            path=str(parsed_weaviate_url.hostname),
+            mode="memory",
+            path="db",
             port=parsed_weaviate_url.port if parsed_weaviate_url.port else 80,
-            vectorizer=Vectorizer(model_name, api_key=hugging_face_api_key, host=modified_ollama_url),
+            vectorizer=Vectorizer(MODEL_NAME, api_key=HUGGING_FACE_API_KEY, host=modified_ollama_url),
         )
 
     def __enter__(self):

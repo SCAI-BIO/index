@@ -5,12 +5,12 @@ import tempfile
 from datastew.embedding import Vectorizer
 from datastew.process.ols import OLSTerminologyImportTask
 
-from app.models import ObjectSchema, WeaviateClient, ollama_url
+from app.models import OLLAMA_URL, ObjectSchema, WeaviateClient
 
 
 def import_snomed_ct_task(model: str = "sentence-transformers/all-mpnet-base-v2"):
     with WeaviateClient() as client:
-        embedding_model = Vectorizer(model, host=ollama_url)
+        embedding_model = Vectorizer(model, host=OLLAMA_URL)
         task = OLSTerminologyImportTask(embedding_model, "SNOMED CT", "snomed")
         task.process_to_weaviate(client)
 
@@ -20,7 +20,7 @@ def import_ols_terminology_task(
     model: str = "sentence-transformers/all-mpnet-base-v2",
 ):
     with WeaviateClient() as client:
-        embedding_model = Vectorizer(model, host=ollama_url)
+        embedding_model = Vectorizer(model, host=OLLAMA_URL)
         task = OLSTerminologyImportTask(embedding_model, terminology_id, terminology_id)
         task.process_to_weaviate(client)
 
