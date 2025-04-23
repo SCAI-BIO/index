@@ -8,7 +8,7 @@ from datastew.repository.model import Mapping
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from app.dependencies import get_client
-from app.models import WeaviateClient, ollama_url
+from app.models import OLLAMA_URL, WeaviateClient
 
 router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(get_client)])
 
@@ -38,7 +38,7 @@ async def create_mapping(
         if client.use_weaviate_vectorizer:
             mapping = Mapping(concept, text)
         else:
-            embedding_model = Vectorizer(model, host=ollama_url)
+            embedding_model = Vectorizer(model, host=OLLAMA_URL)
             embedding = embedding_model.get_embedding(text)
             model_name = embedding_model.model_name
             mapping = Mapping(concept, text, list(embedding), model_name)
@@ -57,7 +57,7 @@ async def get_closest_mappings_for_text(
     limit: int = Form(5),
 ):
     try:
-        embedding_model = Vectorizer(model, host=ollama_url)
+        embedding_model = Vectorizer(model, host=OLLAMA_URL)
         embedding = embedding_model.get_embedding(text)
         if client.use_weaviate_vectorizer:
             model = model.replace("-", "_").replace("/", "_")
@@ -101,7 +101,7 @@ async def get_closest_mappings_for_dictionary(
     limit: int = Form(5),
 ):
     try:
-        embedding_model = Vectorizer(model, host=ollama_url)
+        embedding_model = Vectorizer(model, host=OLLAMA_URL)
         if client.use_weaviate_vectorizer:
             model = model.replace("-", "_").replace("/", "_")
         if not file or not file.filename:

@@ -5,7 +5,7 @@ from datastew.repository.model import Concept, Mapping
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies import get_client
-from app.models import WeaviateClient, ollama_url
+from app.models import OLLAMA_URL, WeaviateClient
 
 router = APIRouter(prefix="/concepts", tags=["concepts"], dependencies=[Depends(get_client)])
 
@@ -50,7 +50,7 @@ async def create_concept_and_attach_mapping(
         if client.use_weaviate_vectorizer:
             mapping = Mapping(concept, text)
         else:
-            embedding_model = Vectorizer(model, host=ollama_url)
+            embedding_model = Vectorizer(model, host=OLLAMA_URL)
             embedding = embedding_model.get_embedding(text)
             model_name = embedding_model.model_name
             mapping = Mapping(concept, text, list(embedding), model_name)
