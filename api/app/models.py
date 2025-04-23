@@ -34,8 +34,8 @@ class ObjectSchema(Enum):
 class WeaviateClient(WeaviateRepository):
     def __init__(self):
         super().__init__(
-            mode="memory",
-            path="db",
+            mode="remote",
+            path=str(parsed_weaviate_url.hostname),
             port=parsed_weaviate_url.port if parsed_weaviate_url.port else 80,
             vectorizer=Vectorizer(MODEL_NAME, api_key=HUGGING_FACE_API_KEY, host=modified_ollama_url),
         )
