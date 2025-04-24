@@ -1,31 +1,37 @@
 .banner {
-    background-color: #171321;
-    color: white;
-    display: flex;
-    align-items: center;
-    padding: 10px 20px;
-    height: 60px;
+  background-color: #171321;
+  color: white;
+  display: grid;
+  grid-template-columns: 1fr 50fr 1fr;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
 }
 
-.logo {
-    height: 60px;
+.logo-box {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  padding-right: 20px;
+  .logo {
+    height: 70px;
     width: auto;
-    margin-right: 15px;
+  }
 }
 
-
-.site-title {
-    flex-grow: 1;
+.site-title-box {
+  .site-title {
     text-align: left;
+  }
 }
 
-.github-link {
-    display: flex;
-    align-items: center;
-}
-
-.github-logo {
-    height: 40px;
+.github-logo-box {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  .github-logo {
+    height: 55px;
     width: auto;
     cursor: pointer;
+  }
 }
