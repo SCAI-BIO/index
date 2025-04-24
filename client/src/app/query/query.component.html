@@ -45,6 +45,7 @@
       <div class="parameters-form">
         <!-- Language Model Selection Dropdown -->
         <div class="language-model-form">
+          <!-- Language Model Select Field -->
           <mat-form-field>
             <mat-label>Language Model</mat-label>
             <mat-select formControlName="selectedEmbeddingModel">
@@ -92,6 +93,12 @@
         </button>
       </div>
     </form>
+    <div class="refresh-button-box">
+      <!-- Refresh Button -->
+      <button class="button-style" (click)="clearCache()">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
   </div>
 
   <!-- Loading Spinner -->

@@ -82,6 +82,12 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       '.csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   }
 
+  clearCache(): void {
+    this.loading = true;
+    this.apiService.clearCache();
+    this.fetchEmbeddingModelsAndTerminologies();
+  }
+
   downloadTableAsCSV(): void {
     this.fileService.downloadCSV(
       this.closestMappings,
@@ -115,6 +121,25 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
         },
         complete: () => (this.loading = false),
       });
+    this.subscriptions.push(sub);
+  }
+
+  fetchEmbeddingModelsAndTerminologies(): void {
+    this.loading = true;
+    const sub = forkJoin({
+      terminologies: this.apiService.fetchTerminologies(),
+      models: this.apiService.fetchEmbeddingModels(),
+    }).subscribe({
+      next: ({ terminologies, models }) => {
+        this.terminologies = terminologies.map((t) => t.name);
+        this.embeddingModels = models;
+      },
+      error: (err) => {
+        console.error('Error fetching language models and terminologies', err);
+        this.loading = false;
+      },
+      complete: () => (this.loading = false),
+    });
     this.subscriptions.push(sub);
   }
 
@@ -161,23 +186,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    this.loading = true;
-
-    const sub = forkJoin({
-      terminologies: this.apiService.fetchTerminologies(),
-      models: this.apiService.fetchEmbeddingModels(),
-    }).subscribe({
-      next: ({ terminologies, models }) => {
-        this.terminologies = terminologies.map((t) => t.name);
-        this.embeddingModels = models;
-      },
-      error: (err) => {
-        console.error('Error loading data', err);
-        this.loading = false;
-      },
-      complete: () => (this.loading = false),
-    });
-    this.subscriptions.push(sub);
+    this.fetchEmbeddingModelsAndTerminologies();
   }
 
   onFileSelect(event: Event): void {

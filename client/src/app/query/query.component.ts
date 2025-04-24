@@ -8,6 +8,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -25,6 +26,7 @@ import { ApiService } from '../services/api.service';
     CommonModule,
     MatPaginatorModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatProgressSpinnerModule,
     MatSelectModule,
@@ -57,6 +59,12 @@ export class QueryComponent implements OnDestroy, OnInit {
     this.loading = false;
   }
 
+  clearCache(): void {
+    this.loading = true;
+    this.apiService.clearCache();
+    this.fetchEmbeddingModelsAndTerminologies();
+  }
+
   fetchClosestMappings(): void {
     if (!this.queryForm.valid) {
       console.error('Form is invalid:', this.queryForm.value);
@@ -86,13 +94,8 @@ export class QueryComponent implements OnDestroy, OnInit {
     this.subscriptions.push(sub);
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
-  }
-
-  ngOnInit(): void {
+  fetchEmbeddingModelsAndTerminologies(): void {
     this.loading = true;
-
     const sub = forkJoin({
       terminologies: this.apiService.fetchTerminologies(),
       models: this.apiService.fetchEmbeddingModels(),
@@ -102,12 +105,20 @@ export class QueryComponent implements OnDestroy, OnInit {
         this.embeddingModels = models;
       },
       error: (err) => {
-        console.error('Error loading data', err);
+        console.error('Error fetching language models and terminologies', err);
         this.loading = false;
       },
       complete: () => (this.loading = false),
     });
     this.subscriptions.push(sub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
+  ngOnInit(): void {
+    this.fetchEmbeddingModelsAndTerminologies();
   }
 
   onSubmit(): void {
