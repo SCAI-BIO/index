@@ -42,7 +42,7 @@ export class QueryComponent implements OnDestroy, OnInit {
   displayedColumns = ['similarity', 'conceptName', 'conceptID', 'terminology'];
   embeddingModels: string[] = [];
   formData = new FormData();
-  loading: boolean = false;
+  loading = false;
   queryForm: FormGroup;
   terminologies: string[] = [];
   private subscriptions: Subscription[] = [];

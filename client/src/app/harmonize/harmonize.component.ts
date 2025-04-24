@@ -53,12 +53,12 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     'actions',
   ];
   embeddingModels: string[] = [];
-  fileName: string = '';
+  fileName = '';
   fileToUpload: File | null = null;
   harmonizeFormData = new FormData();
   harmonizeForm: FormGroup;
-  loading: boolean = false;
-  requiredFileType: string =
+  loading = false;
+  requiredFileType =
     '.csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   terminologies: string[] = [];
   topMatches: Mapping[] = [];

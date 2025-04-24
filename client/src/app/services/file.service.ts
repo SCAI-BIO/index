@@ -5,8 +5,6 @@ import { Response } from '../interfaces/mapping';
   providedIn: 'root',
 })
 export class FileService {
-  constructor() {}
-
   convertToCSV(data: Response[]): string {
     const headers = [
       'Similarity',
