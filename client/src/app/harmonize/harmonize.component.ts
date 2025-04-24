@@ -53,13 +53,12 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     'actions',
   ];
   embeddingModels: string[] = [];
-  fileName = '';
+  fileName: string;
   fileToUpload: File | null = null;
   harmonizeFormData = new FormData();
   harmonizeForm: FormGroup;
-  loading = false;
-  requiredFileType =
-    '.csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  loading: boolean;
+  requiredFileType: string;
   terminologies: string[] = [];
   topMatches: Mapping[] = [];
   private subscriptions: Subscription[] = [];
@@ -77,6 +76,10 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       descriptionField: ['', Validators.required],
       limit: [1],
     });
+    this.fileName = '';
+    this.loading = false;
+    this.requiredFileType =
+      '.csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   }
 
   downloadTableAsCSV(): void {
