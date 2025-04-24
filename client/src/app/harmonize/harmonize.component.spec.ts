@@ -3,7 +3,6 @@ import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { HarmonizeComponent } from './harmonize.component';
-import { provideAnimations } from '@angular/platform-browser/animations';
 
 describe('HarmonizeComponent', () => {
   let component: HarmonizeComponent;
@@ -12,7 +11,7 @@ describe('HarmonizeComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [HarmonizeComponent],
-      providers: [provideHttpClient(), provideRouter([]), provideAnimations()],
+      providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HarmonizeComponent);

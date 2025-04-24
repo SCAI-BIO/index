@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { QueryComponent } from './query.component';
+import { TsneComponent } from './tsne.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 
-describe('QueryComponent', () => {
-  let component: QueryComponent;
-  let fixture: ComponentFixture<QueryComponent>;
+describe('TsneComponent', () => {
+  let component: TsneComponent;
+  let fixture: ComponentFixture<TsneComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [QueryComponent],
+      imports: [TsneComponent],
       providers: [provideHttpClient(), provideRouter([])],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(QueryComponent);
+    fixture = TestBed.createComponent(TsneComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

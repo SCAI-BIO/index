@@ -66,6 +66,12 @@ export class ApiService {
     return this.terminologies$;
   }
 
+  fetchTSNE(): Observable<string> {
+    return this.http.get(`${this.API_URL}/visualization/`, {
+      responseType: 'text',
+    });
+  }
+
   clearCache(): void {
     this.embeddingModels$ = null;
     this.terminologies$ = null;
