@@ -42,7 +42,7 @@ export class QueryComponent implements OnDestroy, OnInit {
   displayedColumns = ['similarity', 'conceptName', 'conceptID', 'terminology'];
   embeddingModels: string[] = [];
   formData = new FormData();
-  loading: boolean = false;
+  loading: boolean;
   queryForm: FormGroup;
   terminologies: string[] = [];
   private subscriptions: Subscription[] = [];
@@ -54,6 +54,7 @@ export class QueryComponent implements OnDestroy, OnInit {
       selectedEmbeddingModel: ['', Validators.required],
       limit: [100],
     });
+    this.loading = false;
   }
 
   fetchClosestMappings(): void {
