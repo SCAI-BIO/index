@@ -44,7 +44,7 @@ export class ApiService {
 
     // Else: make API cal and cache the observable
     this.embeddingModels$ = this.http
-      .get<string[]>(`${this.API_URL}/models`)
+      .get<string[]>(`${this.API_URL}/models/`)
       .pipe(shareReplay(1));
     this.lastFetched = now;
     return this.embeddingModels$;
@@ -60,7 +60,7 @@ export class ApiService {
 
     // Else: make API cal and cache the observable
     this.terminologies$ = this.http
-      .get<Terminology[]>(`${this.API_URL}/terminologies`)
+      .get<Terminology[]>(`${this.API_URL}/terminologies/`)
       .pipe(shareReplay(1));
     this.lastFetched = now;
     return this.terminologies$;
