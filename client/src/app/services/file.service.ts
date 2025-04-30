@@ -58,5 +58,15 @@ export class FileService {
         console.error('File saving canceled or failed:', error);
       }
     }
+
+    // Fallback: create a temporary anchor element and trigger the download
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', suggestedFileName);
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 }
