@@ -85,8 +85,16 @@ export class QueryComponent implements OnDestroy, OnInit {
         error: (err) => {
           console.error('Error fetching closest mappings', err);
           this.loading = false;
-          const errorMessage =
-            err.error?.message || err.message || 'Unknown error occurred';
+          const detail = err.error?.detail;
+          const message = err.error?.message || err.message;
+
+          let errorMessage = 'An unknown error occurred.';
+          if (detail && message) {
+            errorMessage = `${message} — ${detail}`;
+          } else if (detail || message) {
+            errorMessage = detail || message;
+          }
+
           alert(`An error occurred while fetching mappings: ${errorMessage}`);
         },
         complete: () => (this.loading = false),
