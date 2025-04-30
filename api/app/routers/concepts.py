@@ -21,6 +21,15 @@ async def get_total_number_of_concepts(client: Annotated[WeaviateClient, Depends
     return concept.aggregate.over_all(total_count=True).total_count
 
 
+@router.get("/{id}")
+async def get_concept(id: str, client: Annotated[WeaviateClient, Depends(get_client)]):
+    try:
+        concept = client.get_concept(id)
+        return concept
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to get concept with id {id}: {str(e)}")
+
+
 @router.put("/{id}")
 async def create_concept(
     id: str, concept_name: str, terminology_name: str, client: Annotated[WeaviateClient, Depends(get_client)]
