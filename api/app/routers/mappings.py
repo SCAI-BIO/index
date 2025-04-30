@@ -153,5 +153,7 @@ async def get_closest_mappings_for_dictionary(
         os.remove(tmp_file_path)
 
         return response
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Missing required column(s): 'description' and/or 'variable'.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
