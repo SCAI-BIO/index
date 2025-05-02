@@ -20,3 +20,7 @@ export interface Response {
   readonly description: string;
   readonly mappings: Mapping[];
 }
+
+export type StreamingResponse =
+  | { type: 'metadata'; expected_total: number }
+  | { type: 'result'; data: Response };
