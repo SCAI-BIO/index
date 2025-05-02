@@ -1,5 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ChangeDetectorRef,
+} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -11,6 +17,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -31,6 +38,7 @@ import { TopMatchesDialogComponent } from '../top-matches-dialog/top-matches-dia
     MatIconModule,
     MatInputModule,
     MatPaginatorModule,
+    MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTableModule,
@@ -53,11 +61,14 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     'actions',
   ];
   embeddingModels: string[] = [];
+  expectedTotal: number;
   fileName: string;
   fileToUpload: File | null = null;
   harmonizeFormData = new FormData();
   harmonizeForm: FormGroup;
   loading: boolean;
+  processedCount: number;
+  progressPercent: number;
   requiredFileType: string;
   terminologies: string[] = [];
   topMatches: Mapping[] = [];
@@ -65,6 +76,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
 
   constructor(
     private apiService: ApiService,
+    private cdr: ChangeDetectorRef,
     private fileService: FileService,
     private fb: FormBuilder,
     private dialog: MatDialog
@@ -76,8 +88,11 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       descriptionField: ['', Validators.required],
       limit: [1],
     });
+    this.expectedTotal = 0;
     this.fileName = '';
     this.loading = false;
+    this.processedCount = 0;
+    this.progressPercent = 0;
     this.requiredFileType =
       '.csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   }
@@ -95,39 +110,87 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
     );
   }
 
-  fetchClosestMappings(): void {
-    if (!this.harmonizeForm.valid) {
-      console.error('Form is invalid:', this.harmonizeForm.value);
+  streamClosestMappings(): void {
+    if (!this.harmonizeForm.valid || !this.fileToUpload) {
+      console.error(
+        'Form is invalid or no file selected:',
+        this.harmonizeForm.value
+      );
       return;
     }
 
+    // Reset values
     this.loading = true;
+    this.expectedTotal = 0;
+    this.processedCount = 0;
+    this.progressPercent = 0;
+    this.closestMappings = [];
+    this.dataSource.data = [];
+
+    const {
+      variableField,
+      descriptionField,
+      selectedEmbeddingModel,
+      selectedTerminology,
+      limit,
+    } = this.harmonizeForm.value;
+
+    const file = this.fileToUpload;
+
+    let firstChunk = true;
     const sub = this.apiService
-      .fetchClosestMappingsDictionary(this.harmonizeFormData)
+      .streamClosestMappingsDictionary(file, {
+        model: selectedEmbeddingModel,
+        terminology_name: selectedTerminology,
+        variable_field: variableField,
+        description_field: descriptionField,
+        limit: limit,
+      })
       .subscribe({
-        next: (responses) => {
-          this.closestMappings = responses;
-          this.dataSource.data = responses;
-          setTimeout(() => {
-            this.dataSource.paginator = this.paginator;
-          });
+        next: (message) => {
+          let resultChunk: Response | undefined;
+
+          if (message.type === 'metadata') {
+            this.expectedTotal = message.expected_total;
+          } else if (message.type === 'result') {
+            resultChunk = message.data;
+          }
+
+          if (firstChunk) {
+            this.loading = false;
+            firstChunk = false;
+          }
+
+          if (resultChunk) {
+            this.closestMappings.push(resultChunk);
+            this.dataSource.data = [...this.closestMappings];
+
+            this.processedCount++;
+            if (this.expectedTotal > 0) {
+              this.progressPercent = Math.round(
+                (this.processedCount / this.expectedTotal) * 100
+              );
+            }
+
+            if (!this.dataSource.paginator && this.paginator) {
+              this.dataSource.paginator = this.paginator;
+            }
+
+            this.cdr.detectChanges();
+          }
         },
         error: (err) => {
-          console.error('Error fetching closest mappings', err);
-          this.loading = false;
-          const detail = err.error?.detail;
-          const message = err.error?.message || err.message;
+          console.error('WebSocket error fetching closest mappings', err);
 
           let errorMessage = 'An unknown error occurred.';
-          if (detail && message) {
-            errorMessage = `${message} — ${detail}`;
-          } else if (detail || message) {
-            errorMessage = detail || message;
+          if (typeof err === 'string') {
+            errorMessage = err;
+          } else if (err?.error?.message || err?.message) {
+            errorMessage = err.error?.message || err.message;
           }
 
           alert(`An error occurred while fetching mappings: ${errorMessage}`);
         },
-        complete: () => (this.loading = false),
       });
     this.subscriptions.push(sub);
   }
@@ -228,7 +291,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       this.harmonizeFormData.set('model', selectedEmbeddingModel);
       this.harmonizeFormData.set('terminology_name', selectedTerminology);
 
-      this.fetchClosestMappings();
+      this.streamClosestMappings();
     } else {
       console.error('Form is invalid:', this.harmonizeForm.value);
     }
