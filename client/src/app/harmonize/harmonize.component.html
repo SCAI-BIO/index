@@ -8,7 +8,9 @@
       Upload a Dictionary
     </button>
     <!-- Button for t-SNE  -->
-    <button class="button-style" routerLink="/t-sne">Visualize Embeddings</button>
+    <button class="button-style" routerLink="/t-sne">
+      Visualize Embeddings
+    </button>
   </div>
 
   <!-- Description Section -->
@@ -162,6 +164,17 @@
     <mat-spinner diameter="40"></mat-spinner>
   </div>
 
+  <!-- Show progress bar while streamin -->
+  <mat-progress-bar
+    *ngIf="!loading && expectedTotal > 0 && progressPercent < 100"
+    mode="determinate"
+    [value]="progressPercent"
+  ></mat-progress-bar>
+
+  <p *ngIf="!loading && expectedTotal > 0 && progressPercent < 100">
+    Processed {{ processedCount }} of {{ expectedTotal }} variables
+  </p>
+
   <!-- Table Container (Displayed After Data is Retrieved) -->
   <div
     *ngIf="closestMappings.length > 0"
@@ -217,6 +230,7 @@
             mat-raised-button
             class="button-style"
             color="primary"
+            [disabled]="!element.mappings"
             (click)="fetchTopMatches(element.description, element)"
           >
             Show Matches

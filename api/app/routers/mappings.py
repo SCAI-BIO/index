@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 from typing import Annotated
@@ -5,9 +6,18 @@ from typing import Annotated
 from datastew import DataDictionarySource
 from datastew.embedding import Vectorizer
 from datastew.repository.model import Mapping
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 
-from app.dependencies import get_client
+from app.dependencies import get_client, get_client_instance
 from app.models import OLLAMA_URL, WeaviateClient
 
 router = APIRouter(prefix="/mappings", tags=["mappings"], dependencies=[Depends(get_client)])
@@ -89,16 +99,15 @@ async def get_total_number_of_mappings(client: Annotated[WeaviateClient, Depends
     return mapping.aggregate.over_all(total_count=True).total_count
 
 
-# Endpoint to get mappings for a data dictionary source
 @router.post("/dict", description="Get mappings for a data dictionary source.")
 async def get_closest_mappings_for_dictionary(
     client: Annotated[WeaviateClient, Depends(get_client)],
     file: UploadFile = File(...),
-    model: str = Form("sentence-transformers/all-mpnet-base-v2"),
-    terminology_name: str = Form("SNOMED CT"),
+    model: str = Form("nomic-embed-text"),
+    terminology_name: str = Form("OHDSI"),
     variable_field: str = Form("variable"),
     description_field: str = Form("description"),
-    limit: int = Form(5),
+    limit: int = Form(1),
 ):
     try:
         embedding_model = Vectorizer(model, host=OLLAMA_URL)
@@ -157,3 +166,97 @@ async def get_closest_mappings_for_dictionary(
         raise HTTPException(status_code=422, detail="Missing required column(s): 'description' and/or 'variable'.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.websocket("/dict/ws")
+async def websocket_closest_mappings_for_dictionary(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        byte_file_data = await websocket.receive_bytes()
+        meta = await websocket.receive_text()  # Metadata like model, terminology_name, etc.
+
+        metadata = json.loads(meta)
+        model = metadata.get("model", "nomic-embed-text")
+        terminology_name = metadata.get("terminology_name", "OHDSI")
+        variable_field = metadata.get("variable_field", "variable")
+        description_field = metadata.get("description_field", "description")
+        limit = metadata.get("limit", 1)
+        file_extension = metadata.get("file_extension", "").lower()
+
+        # Break CodeQL taint chain
+        extension_map = {
+            ".csv": ".csv",
+            ".tsv": ".tsv",
+            ".xlsx": ".xlsx",
+        }
+
+        if file_extension not in extension_map:
+            raise ValueError(f"Unsupported file extension: {file_extension}")
+
+        safe_suffix = extension_map[file_extension]
+
+        # Write file to temp
+        with tempfile.NamedTemporaryFile(delete=False, suffix=safe_suffix) as tmp_file:
+            tmp_file.write(byte_file_data)
+            tmp_file_path = tmp_file.name
+
+        # Load data and process
+        data_dict_source = DataDictionarySource(tmp_file_path, variable_field, description_field)
+        df = data_dict_source.to_dataframe()
+
+        await websocket.send_json({"type": "metadata", "expected_total": len(df)})
+
+        descriptions = df["variable"].to_list()
+        variables = df["description"].to_list()
+
+        # Get client (depends does not work directly in ws)
+        client = get_client_instance()
+
+        if client.use_weaviate_vectorizer:
+            model = model.replace("-", "_").replace("/", "_")
+
+        embedding_model = Vectorizer(model, host=OLLAMA_URL)
+        embeddings = embedding_model.get_embeddings(descriptions)
+
+        for variable, description, embedding in zip(variables, descriptions, embeddings):
+            closest_mappings = client.get_closest_mappings(embedding, True, terminology_name, model, limit)
+            mappings_list = [
+                {
+                    "concept": {
+                        "id": mapping_result.mapping.concept.concept_identifier,
+                        "name": mapping_result.mapping.concept.pref_label,
+                        "terminology": {
+                            "id": mapping_result.mapping.concept.terminology.id,
+                            "name": mapping_result.mapping.concept.terminology.name,
+                        },
+                    },
+                    "text": mapping_result.mapping.text,
+                    "similarity": mapping_result.similarity,
+                }
+                for mapping_result in closest_mappings
+            ]
+            await websocket.send_json(
+                {
+                    "type": "result",
+                    "variable": variable,
+                    "description": description,
+                    "mappings": mappings_list,
+                }
+            )
+
+        os.remove(tmp_file_path)
+        await websocket.close()
+
+    except WebSocketDisconnect:
+        print("WebSocket disconnected")
+    except ValueError:
+        await websocket.send_json(
+            {"type": "error", "message": "Missing required column(s): 'description' and/or 'variable'."}
+        )
+        await websocket.close()
+    except Exception as e:
+        await websocket.send_json({"type": "error", "message": str(e)})
+        await websocket.close()
+    finally:
+        if tmp_file_path and os.path.exists(tmp_file_path):
+            os.remove(tmp_file_path)

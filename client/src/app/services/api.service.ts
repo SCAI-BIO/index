@@ -3,7 +3,12 @@ import { Injectable } from '@angular/core';
 
 import { Observable, shareReplay } from 'rxjs';
 
-import { Mapping, Response, Terminology } from '../interfaces/mapping';
+import {
+  Mapping,
+  Response,
+  Terminology,
+  StreamingResponse,
+} from '../interfaces/mapping';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -17,6 +22,12 @@ export class ApiService {
   private CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in ms
 
   constructor(private http: HttpClient) {}
+
+  clearCache(): void {
+    this.embeddingModels$ = null;
+    this.terminologies$ = null;
+    this.lastFetched = 0;
+  }
 
   fetchClosestMappingsDictionary(formData: FormData): Observable<Response[]> {
     return this.http.post<Response[]>(
@@ -72,9 +83,53 @@ export class ApiService {
     });
   }
 
-  clearCache(): void {
-    this.embeddingModels$ = null;
-    this.terminologies$ = null;
-    this.lastFetched = 0;
+  streamClosestMappingsDictionary(
+    file: File,
+    metadata: {
+      model: string;
+      terminology_name: string;
+      variable_field: string;
+      description_field: string;
+      limit: number;
+    }
+  ): Observable<StreamingResponse> {
+    const wsUrl = this.API_URL.replace(/^http/, 'ws') + '/mappings/dict/ws';
+
+    return new Observable((observer) => {
+      const socket = new WebSocket(wsUrl);
+
+      socket.binaryType = 'arraybuffer';
+
+      socket.onopen = () => {
+        // Send file binary
+        file.arrayBuffer().then((buffer) => {
+          socket.send(buffer);
+
+          // Send metadata JSON
+          const metadataPayload = {
+            ...metadata,
+            file_extension: '.' + file.name.split('.').pop(),
+          };
+          socket.send(JSON.stringify(metadataPayload));
+        });
+      };
+
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        observer.next(data);
+      };
+
+      socket.onerror = (error) => {
+        observer.error(error);
+      };
+
+      socket.onclose = () => {
+        observer.complete();
+      };
+
+      return () => {
+        socket.close();
+      };
+    });
   }
 }
