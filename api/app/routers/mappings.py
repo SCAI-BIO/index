@@ -181,7 +181,14 @@ async def websocket_closest_mappings_for_dictionary(websocket: WebSocket):
         variable_field = metadata.get("variable_field", "variable")
         description_field = metadata.get("description_field", "description")
         limit = metadata.get("limit", 1)
-        file_extension = metadata.get("file_extension")
+        file_extension = metadata.get("file_extension", "")
+
+        # Validate file extension
+        allowed_extensions = {".csv", ".tsv", ".xlsx"}
+        if file_extension not in allowed_extensions:
+            raise ValueError(
+                f"Unsupported file extension '{file_extension}'. Allowed types: {', '.join(allowed_extensions)}"
+            )
 
         # Write file to temp
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_extension) as tmp_file:
