@@ -225,6 +225,7 @@ async def websocket_closest_mappings_for_dictionary(websocket: WebSocket):
             ]
             await websocket.send_json(
                 {
+                    "type": "result",
                     "variable": variable,
                     "description": description,
                     "mappings": mappings_list,

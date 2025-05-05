@@ -116,15 +116,7 @@ export class ApiService {
 
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-
-        if (data.type === 'metadata') {
-          observer.next({
-            type: 'metadata',
-            expected_total: data.expected_total,
-          });
-        } else {
-          observer.next({ type: 'result', data });
-        }
+        observer.next(data);
       };
 
       socket.onerror = (error) => {

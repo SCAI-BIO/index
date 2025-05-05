@@ -23,5 +23,5 @@ export interface Response {
 
 export type StreamingResponse =
   | { type: 'metadata'; expected_total: number }
-  | { type: 'result'; data: Response }
+  | ({ type: 'result' } & Response)
   | { type: 'error'; message: string };

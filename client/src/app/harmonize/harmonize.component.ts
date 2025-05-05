@@ -25,7 +25,7 @@ import { RouterModule } from '@angular/router';
 
 import { forkJoin, Subscription } from 'rxjs';
 
-import { Mapping, Response } from '../interfaces/mapping';
+import { Mapping, Response, StreamingResponse } from '../interfaces/mapping';
 import { ApiService } from '../services/api.service';
 import { FileService } from '../services/file.service';
 import { TopMatchesDialogComponent } from '../top-matches-dialog/top-matches-dialog.component';
@@ -146,27 +146,31 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
         limit: limit,
       })
       .subscribe({
-        next: (message) => {
+        next: (message: StreamingResponse) => {
           if (message.type === 'error') {
             this.loading = false;
             alert(`An error occurred: ${message.message}`);
             this.progressPercent = 100;
             return;
           }
-          let resultChunk: Response | undefined;
 
           if (message.type === 'metadata') {
             this.expectedTotal = message.expected_total;
-          } else if (message.type === 'result') {
-            resultChunk = message.data;
+            return;
           }
 
-          if (firstChunk) {
-            this.loading = false;
-            firstChunk = false;
-          }
+          if (message.type === 'result') {
+            const resultChunk: Response = {
+              variable: message.variable,
+              description: message.description,
+              mappings: message.mappings,
+            };
 
-          if (resultChunk) {
+            if (firstChunk) {
+              this.loading = false;
+              firstChunk = false;
+            }
+
             this.closestMappings.push(resultChunk);
             this.dataSource.data = [...this.closestMappings];
 
