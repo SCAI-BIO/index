@@ -181,17 +181,19 @@ async def websocket_closest_mappings_for_dictionary(websocket: WebSocket):
         variable_field = metadata.get("variable_field", "variable")
         description_field = metadata.get("description_field", "description")
         limit = metadata.get("limit", 1)
-        file_extension = metadata.get("file_extension", "")
+        file_extension = metadata.get("file_extension", "").lower()
 
-        # Validate file extension
-        allowed_extensions = {".csv", ".tsv", ".xlsx"}
-        if file_extension not in allowed_extensions:
-            raise ValueError(
-                f"Unsupported file extension '{file_extension}'. Allowed types: {', '.join(allowed_extensions)}"
-            )
+        # Break CodeQL taint chain
+        extension_map = {
+            ".csv": ".csv",
+            ".tsv": ".tsv",
+            ".xlsx": ".xlsx",
+        }
 
-        # Reassign to break CodeQL taint chain
-        safe_suffix = str(file_extension)
+        if file_extension not in extension_map:
+            raise ValueError(f"Unsupported file extension: {file_extension}")
+
+        safe_suffix = extension_map[file_extension]
 
         # Write file to temp
         with tempfile.NamedTemporaryFile(delete=False, suffix=safe_suffix) as tmp_file:
