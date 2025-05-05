@@ -237,10 +237,12 @@ async def websocket_closest_mappings_for_dictionary(websocket: WebSocket):
     except WebSocketDisconnect:
         print("WebSocket disconnected")
     except ValueError:
-        await websocket.send_json({"error": "Missing required column(s): 'description' and/or 'variable'."})
+        await websocket.send_json(
+            {"type": "error", "message": "Missing required column(s): 'description' and/or 'variable'."}
+        )
         await websocket.close()
     except Exception as e:
-        await websocket.send_json({"error": str(e)})
+        await websocket.send_json({"type": "error", "message": str(e)})
         await websocket.close()
     finally:
         if tmp_file_path and os.path.exists(tmp_file_path):
