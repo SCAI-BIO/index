@@ -71,7 +71,6 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
   progressPercent: number;
   requiredFileType: string;
   terminologies: string[] = [];
-  topMatches: Mapping[] = [];
   private subscriptions: Subscription[] = [];
 
   constructor(
@@ -148,6 +147,12 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       })
       .subscribe({
         next: (message) => {
+          if (message.type === 'error') {
+            this.loading = false;
+            alert(`An error occurred: ${message.message}`);
+            this.progressPercent = 100;
+            return;
+          }
           let resultChunk: Response | undefined;
 
           if (message.type === 'metadata') {
@@ -190,6 +195,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
           }
 
           alert(`An error occurred while fetching mappings: ${errorMessage}`);
+          this.progressPercent = 100;
         },
       });
     this.subscriptions.push(sub);
