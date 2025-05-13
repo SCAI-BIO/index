@@ -1,0 +1,142 @@
+<main class="main-container harmonize-component">
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Table Container -->
+  <div class="mat-elevation-z8 table-container">
+    <!-- Filter -->
+    <div class="filter-container">
+      <mat-form-field>
+        <mat-label>Filter</mat-label>
+        <input
+          matInput
+          (keyup)="applyFilter($event)"
+          placeholder="Ex. age"
+          #input
+        />
+      </mat-form-field>
+    </div>
+    <!-- Pagination Controls -->
+    <mat-paginator
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      showFirstLastButtons
+    ></mat-paginator>
+    <table mat-table [dataSource]="dataSource" matSort class="mat-table">
+      <!-- Core Model ID Column -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>CDM ID</th>
+        <td mat-cell *matCellDef="let element" class="highlight-core-model">
+          {{ element.id }}
+        </td>
+      </ng-container>
+
+      <!-- Core Model Label -->
+      <ng-container matColumnDef="label">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>CDM Label</th>
+        <td mat-cell *matCellDef="let element" class="highlight-core-model">
+          {{ element.label }}
+        </td>
+      </ng-container>
+
+      <!-- Core Model Description -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>CDM Description</th>
+        <td mat-cell *matCellDef="let element" class="highlight-core-model">
+          {{ element.description }}
+        </td>
+      </ng-container>
+
+      <!-- OLS ID -->
+      <ng-container matColumnDef="olsId">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>OLS ID</th>
+        <td mat-cell *matCellDef="let element" class="highlight-ols">
+          {{ element.ols.id }}
+        </td>
+      </ng-container>
+
+      <!-- OLS Label -->
+      <ng-container matColumnDef="olsLabel">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>OLS Label</th>
+        <td mat-cell *matCellDef="let element" class="highlight-ols">
+          {{ element.ols.label }}
+        </td>
+      </ng-container>
+
+      <!-- OLS Description -->
+      <ng-container matColumnDef="olsDescription">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          OLS Description
+        </th>
+        <td mat-cell *matCellDef="let element" class="highlight-ols">
+          {{ element.ols.description }}
+        </td>
+      </ng-container>
+
+      <!-- OHDSI ID -->
+      <ng-container matColumnDef="ohdsiId">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>OHDSI ID</th>
+        <td mat-cell *matCellDef="let element" class="highlight-ohdsi">
+          {{ element.ohdsi.id }}
+        </td>
+      </ng-container>
+
+      <!-- OHDSI Label -->
+      <ng-container matColumnDef="ohdsiLabel">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>OHDSI Label</th>
+        <td mat-cell *matCellDef="let element" class="highlight-ohdsi">
+          {{ element.ohdsi.label }}
+        </td>
+      </ng-container>
+
+      <!-- OHDSI Domain -->
+      <ng-container matColumnDef="ohdsiDomain">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>OHDSI Domain</th>
+        <td mat-cell *matCellDef="let element" class="highlight-ohdsi">
+          {{ element.ohdsi.domain }}
+        </td>
+      </ng-container>
+
+      <!-- Study1 Variable -->
+      <ng-container matColumnDef="study1Variable">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          Study1 Variable
+        </th>
+        <td mat-cell *matCellDef="let element" class="highlight-study1">
+          {{ element.studies[0].variable }}
+        </td>
+      </ng-container>
+
+      <!-- Study1 Description -->
+      <ng-container matColumnDef="study1Description">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          Study1 Description
+        </th>
+        <td mat-cell *matCellDef="let element" class="highlight-study1">
+          {{ element.studies[0].description }}
+        </td>
+      </ng-container>
+
+      <!-- Study2 Variable -->
+      <ng-container matColumnDef="study2Variable">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          Study2 Variable
+        </th>
+        <td mat-cell *matCellDef="let element" class="highlight-study2">
+          {{ element.studies[1].variable }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <!-- Row shown when there is no matching data -->
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" colspan="12">
+          No data mathcing the filter " {{ input.value }}"
+        </td>
+      </tr>
+    </table>
+  </div>
+</main>

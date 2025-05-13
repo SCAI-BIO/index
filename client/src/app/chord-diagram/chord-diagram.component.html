@@ -1,0 +1,31 @@
+<main class="main-container harmonize-component">
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div class="navigation-buttons">
+    <button
+      (click)="previous()"
+      [disabled]="currentIndex === 0"
+      class="button-style"
+    >
+      Previous
+    </button>
+    <span>{{ currentIndex + 1 }} / {{ dataChunks.length }}</span>
+    <button
+      (click)="next()"
+      [disabled]="currentIndex === dataChunks.length - 1"
+      class="button-style"
+    >
+      Next →
+    </button>
+  </div>
+
+  <!-- Render one diagram per chunk -->
+  <div class="chord-diagram-container">
+    <div class="chord-diagram">
+      <svg></svg>
+    </div>
+  </div>
+</main>

@@ -1,0 +1,28 @@
+.highlight-core-model {
+  background-color: #f3e5f5;
+}
+
+.highlight-ols {
+  background-color: #e3f2fd;
+}
+
+.highlight-ohdsi {
+  background-color: #fce4ec;
+}
+
+.highlight-study1 {
+  background-color: #e8f5e9;
+}
+
+.highlight-study2 {
+  background-color: #fffde7;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: center;
+
+  mat-form-field {
+    width: 20%;
+  }
+}
