@@ -2,7 +2,12 @@ import { Injectable } from '@angular/core';
 
 import * as d3 from 'd3';
 
-import { ChordData, ChordLink, ChordNode } from '../interfaces/chord-data';
+import {
+  ChordData,
+  ChordLink,
+  ChordNode,
+  LabeledChordGroup,
+} from '../interfaces/chord-diagram';
 
 @Injectable({
   providedIn: 'root',
@@ -122,8 +127,11 @@ export class ChordDiagramService {
     const chord = d3.chord().padAngle(0.06).sortSubgroups(d3.descending);
     const chords = chord(matrix);
 
-    const arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);
-    const ribbon = d3.ribbon().radius(innerRadius);
+    const arc = d3
+      .arc<d3.ChordGroup>()
+      .innerRadius(innerRadius)
+      .outerRadius(outerRadius);
+    const ribbon = d3.ribbon<unknown, d3.Chord>().radius(innerRadius);
 
     const svgGroup = svg
       .attr('width', '100%')
@@ -152,31 +160,34 @@ export class ChordDiagramService {
         const feature = nodes[d.index];
         return d3.rgb(this.colorScale(feature.group)).darker().toString();
       })
-      .attr('d', arc as any);
+      .attr('d', (d) => arc(d)!);
 
     group
       .append('text')
-      .each((d: any) => {
+      .each((d: LabeledChordGroup) => {
         d.angle = (d.startAngle + d.endAngle) / 2;
       })
       .attr('dy', '.35em')
       .attr(
         'transform',
-        (d: any) => `
-                rotate(${(d.angle * 180) / Math.PI - 90})
+        (d: LabeledChordGroup) => `
+                rotate(${(d.angle! * 180) / Math.PI - 90})
                 translate(${outerRadius + 20})
-                ${d.angle > Math.PI ? 'rotate(180)' : ''}
+                ${d.angle! > Math.PI ? 'rotate(180)' : ''}
             `
       )
-      .style('text-anchor', (d: any) => (d.angle > Math.PI ? 'end' : null))
+      .style('text-anchor', (d: LabeledChordGroup) =>
+        d.angle! > Math.PI ? 'end' : null
+      )
       .style('font-size', '16px')
       .text((d: d3.ChordGroup) => nodes[d.index].name)
       .on('mouseover', function (event: MouseEvent, d: d3.ChordGroup) {
         const index = d.index;
         svgGroup
-          .selectAll('.ribbon')
+          .selectAll<SVGPathElement, d3.Chord>('.ribbon')
           .filter(
-            (r: any) => r.source.index === index || r.target.index === index
+            (r: d3.Chord) =>
+              r.source.index === index || r.target.index === index
           )
           .style('fill', 'black')
           .style('stroke', 'black');
@@ -193,12 +204,12 @@ export class ChordDiagramService {
       .attr('fill-opacity', 0.75)
       .attr('stroke-opacity', 0.75)
       .attr('cursor', 'pointer')
-      .selectAll('path')
+      .selectAll<SVGPathElement, d3.Chord>('path')
       .data(chords)
       .enter()
       .append('path')
       .attr('class', 'ribbon')
-      .attr('d', ribbon as any);
+      .attr('d', (d) => ribbon(d)!);
 
     const existingGroups = Array.from(
       new Set(nodes.map((node) => node.group))

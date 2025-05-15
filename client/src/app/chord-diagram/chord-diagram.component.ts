@@ -5,7 +5,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { Subscription } from 'rxjs';
 
-import { ChordData } from '../interfaces/chord-data';
+import { ChordData } from '../interfaces/chord-diagram';
 import { ApiError } from '../interfaces/api-error';
 import { ChordDiagramService } from '../services/chord-diagram.service';
 
