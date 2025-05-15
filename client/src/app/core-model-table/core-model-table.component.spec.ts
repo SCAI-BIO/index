@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CoreModelTableComponent } from './core-model-table.component';
+import { provideHttpClient } from '@angular/common/http';
 
 describe('CoreModelTableComponent', () => {
   let component: CoreModelTableComponent;
@@ -8,9 +9,9 @@ describe('CoreModelTableComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoreModelTableComponent]
-    })
-    .compileComponents();
+      imports: [CoreModelTableComponent],
+      providers: [provideHttpClient()],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(CoreModelTableComponent);
     component = fixture.componentInstance;
