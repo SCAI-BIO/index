@@ -19,6 +19,7 @@ import { forkJoin, Subscription } from 'rxjs';
 
 import { Mapping } from '../interfaces/mapping';
 import { ApiService } from '../services/api.service';
+import { ExternalLinkService } from '../services/external-link.service';
 
 @Component({
   selector: 'app-query',
@@ -49,7 +50,11 @@ export class QueryComponent implements OnDestroy, OnInit {
   terminologies: string[] = [];
   private subscriptions: Subscription[] = [];
 
-  constructor(private apiService: ApiService, private fb: FormBuilder) {
+  constructor(
+    private apiService: ApiService,
+    private externalLinkService: ExternalLinkService,
+    private fb: FormBuilder
+  ) {
     this.queryForm = this.fb.group({
       text: ['', Validators.required],
       selectedTerminology: ['', Validators.required],
@@ -119,6 +124,16 @@ export class QueryComponent implements OnDestroy, OnInit {
       complete: () => (this.loading = false),
     });
     this.subscriptions.push(sub);
+  }
+
+  getExternalLink(termId: string): string {
+    const { selectedTerminology } = this.queryForm.value;
+    switch (selectedTerminology) {
+      case 'OHDSI':
+        return this.externalLinkService.getAthenaLink(termId);
+      default:
+        return this.externalLinkService.getOlsLink(termId);
+    }
   }
 
   ngOnDestroy(): void {

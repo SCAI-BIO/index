@@ -29,6 +29,7 @@ import { Mapping, Response, StreamingResponse } from '../interfaces/mapping';
 import { ApiService } from '../services/api.service';
 import { FileService } from '../services/file.service';
 import { TopMatchesDialogComponent } from '../top-matches-dialog/top-matches-dialog.component';
+import { ExternalLinkService } from '../services/external-link.service';
 
 @Component({
   selector: 'app-harmonize',
@@ -76,6 +77,7 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
   constructor(
     private apiService: ApiService,
     private cdr: ChangeDetectorRef,
+    private externalLinkService: ExternalLinkService,
     private fileService: FileService,
     private fb: FormBuilder,
     private dialog: MatDialog
@@ -107,6 +109,16 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       this.closestMappings,
       'kitsune-harmonization.csv'
     );
+  }
+
+  getExternalLink(termId: string): string {
+    const { selectedTerminology } = this.harmonizeForm.value;
+    switch (selectedTerminology) {
+      case 'OHDSI':
+        return this.externalLinkService.getAthenaLink(termId);
+      default:
+        return this.externalLinkService.getOlsLink(termId);
+    }
   }
 
   streamClosestMappings(): void {

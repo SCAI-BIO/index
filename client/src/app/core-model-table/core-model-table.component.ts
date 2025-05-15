@@ -2,23 +2,19 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
+
 import { Subscription } from 'rxjs';
 
+import { ApiError } from '../interfaces/api-error';
 import { CoreModel } from '../interfaces/core-model';
-
-interface ApiError {
-  error?: {
-    message?: string;
-    detail?: string;
-  };
-  message?: string;
-}
+import { ExternalLinkService } from '../services/external-link.service';
 
 @Component({
   selector: 'app-core-model-table',
@@ -26,6 +22,7 @@ interface ApiError {
   imports: [
     CommonModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
@@ -39,7 +36,6 @@ interface ApiError {
 export class CoreModelTableComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-
   dataSource = new MatTableDataSource<CoreModel>([]);
   loading = false;
   subscriptions: Subscription[] = [];
@@ -59,34 +55,90 @@ export class CoreModelTableComponent implements OnInit, OnDestroy {
     'study2Variable',
   ];
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private externalLinkService: ExternalLinkService,
+    private http: HttpClient
+  ) {}
 
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;
     this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
-  ngOnInit(): void {
-    this.loadCoreModelData();
+  getAthenaLink(termId: string): string {
+    return this.externalLinkService.getAthenaLink(termId);
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  getOlsLink(termId: string): string {
+    return this.externalLinkService.getOlsLink(termId);
   }
 
-  private loadCoreModelData(): void {
-    this.loading = true;
+  getSortingDataAccessor(): (item: CoreModel, property: string) => string {
+    return (item: CoreModel, property: string): string => {
+      let value: string | undefined;
 
-    const sub = this.http.get<CoreModel[]>('assets/core_model.json').subscribe({
-      next: (data) => this.initializeDataSource(data),
-      error: (err: ApiError) => this.handleError(err),
-      complete: () => (this.loading = false),
-    });
+      switch (property) {
+        case 'olsId':
+          value = item.ols?.id;
+          break;
+        case 'olsLabel':
+          value = item.ols?.label;
+          break;
+        case 'olsDescription':
+          value = item.ols?.description;
+          break;
+        case 'ohdsiId':
+          value = item.ohdsi?.id;
+          break;
+        case 'ohdsiLabel':
+          value = item.ohdsi?.label;
+          break;
+        case 'ohdsiDomain':
+          value = item.ohdsi?.domain;
+          break;
+        case 'study1Variable':
+          value = item.studies?.[0]?.variable;
+          break;
+        case 'study1Description':
+          value = item.studies?.[0]?.definition;
+          break;
+        case 'study2Variable':
+          value = item.studies?.[1]?.variable;
+          break;
+        case 'id':
+          value = item.id;
+          break;
+        case 'label':
+          value = item.label;
+          break;
+        case 'description':
+          value = item.description;
+          break;
+        default:
+          value = '';
+      }
 
-    this.subscriptions.push(sub);
+      return value === null || value === undefined || value.trim() === ''
+        ? 'ÿ' // blank values sort last
+        : value.toLowerCase();
+    };
   }
 
-  private initializeDataSource(data: CoreModel[]): void {
+  handleError(err: ApiError): void {
+    console.error('Error fetching data:', err);
+    this.loading = false;
+
+    const detail = err.error?.detail;
+    const message = err.error?.message || err.message;
+    const errorMessage =
+      detail && message
+        ? `${message} — ${detail}`
+        : detail || message || 'An unknown error occurred.';
+
+    alert(`An error occurred while fetching data: ${errorMessage}`);
+  }
+
+  initializeDataSource(data: CoreModel[]): void {
     this.dataSource.data = data;
 
     this.dataSource.filterPredicate = (
@@ -151,71 +203,23 @@ export class CoreModelTableComponent implements OnInit, OnDestroy {
     });
   }
 
-  private getSortingDataAccessor(): (
-    item: CoreModel,
-    property: string
-  ) => string {
-    return (item: CoreModel, property: string): string => {
-      let value: string | undefined;
-
-      switch (property) {
-        case 'olsId':
-          value = item.ols?.id;
-          break;
-        case 'olsLabel':
-          value = item.ols?.label;
-          break;
-        case 'olsDescription':
-          value = item.ols?.description;
-          break;
-        case 'ohdsiId':
-          value = item.ohdsi?.id;
-          break;
-        case 'ohdsiLabel':
-          value = item.ohdsi?.label;
-          break;
-        case 'ohdsiDomain':
-          value = item.ohdsi?.domain;
-          break;
-        case 'study1Variable':
-          value = item.studies?.[0]?.variable;
-          break;
-        case 'study1Description':
-          value = item.studies?.[0]?.definition;
-          break;
-        case 'study2Variable':
-          value = item.studies?.[1]?.variable;
-          break;
-        case 'id':
-          value = item.id;
-          break;
-        case 'label':
-          value = item.label;
-          break;
-        case 'description':
-          value = item.description;
-          break;
-        default:
-          value = '';
-      }
-
-      return value === null || value === undefined || value.trim() === ''
-        ? 'ÿ' // blank values sort last
-        : value.toLowerCase();
-    };
+  ngOnInit(): void {
+    this.loadCoreModelData();
   }
 
-  private handleError(err: ApiError): void {
-    console.error('Error fetching data:', err);
-    this.loading = false;
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
 
-    const detail = err.error?.detail;
-    const message = err.error?.message || err.message;
-    const errorMessage =
-      detail && message
-        ? `${message} — ${detail}`
-        : detail || message || 'An unknown error occurred.';
+  loadCoreModelData(): void {
+    this.loading = true;
 
-    alert(`An error occurred while fetching data: ${errorMessage}`);
+    const sub = this.http.get<CoreModel[]>('assets/core_model.json').subscribe({
+      next: (data) => this.initializeDataSource(data),
+      error: (err: ApiError) => this.handleError(err),
+      complete: () => (this.loading = false),
+    });
+
+    this.subscriptions.push(sub);
   }
 }

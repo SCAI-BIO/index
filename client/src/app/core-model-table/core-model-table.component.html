@@ -42,7 +42,9 @@
 
       <!-- Core Model Description -->
       <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>CDM Description</th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          CDM Description
+        </th>
         <td mat-cell *matCellDef="let element" class="highlight-core-model">
           {{ element.description }}
         </td>
@@ -52,7 +54,16 @@
       <ng-container matColumnDef="olsId">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>OLS ID</th>
         <td mat-cell *matCellDef="let element" class="highlight-ols">
-          {{ element.ols.id }}
+          <a
+            *ngIf="element.ols?.id"
+            [href]="getOlsLink(element.ols.id)"
+            target="_blank"
+            rel="noopener"
+            class="external-link"
+          >
+            {{ element.ols.id }}
+            <mat-icon inline class="external-link-icon">open_in_new</mat-icon>
+          </a>
         </td>
       </ng-container>
 
@@ -78,7 +89,16 @@
       <ng-container matColumnDef="ohdsiId">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>OHDSI ID</th>
         <td mat-cell *matCellDef="let element" class="highlight-ohdsi">
-          {{ element.ohdsi.id }}
+          <a
+            *ngIf="element.ohdsi?.id"
+            [href]="getAthenaLink(element.ohdsi.id)"
+            target="_blank"
+            rel="noopener"
+            class="external-link"
+          >
+            {{ element.ohdsi.id }}
+            <mat-icon inline class="external-link-icon">open_in_new</mat-icon>
+          </a>
         </td>
       </ng-container>
 
