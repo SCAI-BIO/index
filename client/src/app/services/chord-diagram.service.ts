@@ -217,7 +217,10 @@ export class ChordDiagramService {
 
     d3.select(svgElement).selectAll('.legend').remove();
 
-    const legend = d3.select(svgElement).append('div').attr('class', 'legend');
+    const legend = d3
+      .select(svgElement)
+      .insert('div', 'svg')
+      .attr('class', 'legend');
 
     existingGroups.forEach((group) => {
       const legendRow = legend.append('div').attr('class', 'legend-row');
