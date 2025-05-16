@@ -103,16 +103,6 @@ export class ChordDiagramService {
 
     const svgGroup = this.initSvgGroup(svg, width, height);
 
-    svgGroup
-      .append('filter')
-      .attr('id', 'glow')
-      .append('feDropShadow')
-      .attr('dx', 0)
-      .attr('dy', 0)
-      .attr('stdDeviation', 3)
-      .attr('flood-color', '#000')
-      .attr('flood-opacity', 0.4);
-
     const grouped = this.groupChordGroupsByName(chords.groups, nodes);
     this.drawGroupArcs(svgGroup, grouped, outerRadius);
     this.drawNodeLabels(svgGroup, chords, nodes, outerRadius);
@@ -191,27 +181,6 @@ export class ChordDiagramService {
     width: number,
     height: number
   ) {
-    // Ensure glow filter is added only once
-    if (svg.select('defs').empty()) {
-      const defs = svg.append('defs');
-
-      const filter = defs
-        .append('filter')
-        .attr('id', 'glow')
-        .attr('x', '-50%')
-        .attr('y', '-50%')
-        .attr('width', '200%')
-        .attr('height', '200%');
-
-      filter
-        .append('feDropShadow')
-        .attr('dx', 0)
-        .attr('dy', 0)
-        .attr('stdDeviation', 3)
-        .attr('flood-color', 'black')
-        .attr('flood-opacity', 0.6);
-    }
-
     return svg
       .attr('width', '100%')
       .attr('height', '100%')
@@ -321,7 +290,6 @@ export class ChordDiagramService {
           .duration(200)
           .style('fill', 'black')
           .style('stroke', 'black')
-          .style('filter', 'url(#glow)')
           .style('opacity', 1);
       })
       .on('mouseout', () => {
@@ -330,9 +298,9 @@ export class ChordDiagramService {
           .transition()
           .duration(200)
           .style('filter', null)
-          .style('fill', 'skyblue')
-          .style('stroke', 'skyblue')
-          .style('opacity', 0.75);
+          .style('fill', '#0066cc')
+          .style('stroke', 'white')
+          .style('opacity', 0.9);
       });
   }
 
@@ -351,8 +319,6 @@ export class ChordDiagramService {
 
     svgGroup
       .append('g')
-      .attr('fill-opacity', 0.75)
-      .attr('stroke-opacity', 0.75)
       .attr('cursor', 'pointer')
       .selectAll<SVGPathElement, d3.Chord>('path')
       .data(chords)
@@ -360,7 +326,10 @@ export class ChordDiagramService {
       .append('path')
       .attr('class', 'ribbon')
       .style('filter', null)
-      .attr('d', ribbon);
+      .attr('d', ribbon)
+      .style('fill', '#0066cc')
+      .style('stroke', 'white')
+      .style('opacity', 0.9);
   }
 
   /**
