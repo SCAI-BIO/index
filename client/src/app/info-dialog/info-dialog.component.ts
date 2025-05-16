@@ -67,10 +67,18 @@ export class InfoDialogComponent {
         It provides access to vocabularies such as MONDO, EFO, SNOMED, and others via a consistent web API and user interface.
       </p>
       <p>
-        You can explore available ontologies at the
-        <a href="https://www.ebi.ac.uk/ols/index" target="_blank" rel="noopener">
-          OLS Website.
+        You can find more information in the
+        <a href="https://www.ebi.ac.uk/ols4/about" target="_blank" rel="noopener">
+          about section
         </a>
+        of the OLS Website.
+      </p>
+      <p>
+        You can explore available ontologies in the
+        <a href="https://www.ebi.ac.uk/ols4/ontologies" target="_blank" rel="noopener">
+          ontologies section
+        </a>
+        of the OLS Website.
       </p>
     `;
   }
