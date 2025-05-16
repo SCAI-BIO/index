@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -12,6 +13,8 @@ import { RouterModule } from '@angular/router';
 
 import { Subscription } from 'rxjs';
 
+import { InfoKeys } from '../enums/info-keys';
+import { InfoDialogComponent } from '../info-dialog/info-dialog.component';
 import { ApiError } from '../interfaces/api-error';
 import { CoreModel } from '../interfaces/core-model';
 import { ExternalLinkService } from '../services/external-link.service';
@@ -37,6 +40,7 @@ export class CoreModelTableComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   dataSource = new MatTableDataSource<CoreModel>([]);
+  readonly InfoKey = InfoKeys;
   loading = false;
   subscriptions: Subscription[] = [];
 
@@ -56,6 +60,7 @@ export class CoreModelTableComponent implements OnInit, OnDestroy {
   ];
 
   constructor(
+    private dialog: MatDialog,
     private externalLinkService: ExternalLinkService,
     private http: HttpClient
   ) {}
@@ -203,14 +208,6 @@ export class CoreModelTableComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit(): void {
-    this.loadCoreModelData();
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.forEach((sub) => sub.unsubscribe());
-  }
-
   loadCoreModelData(): void {
     this.loading = true;
 
@@ -221,5 +218,20 @@ export class CoreModelTableComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(sub);
+  }
+
+  ngOnInit(): void {
+    this.loadCoreModelData();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach((sub) => sub.unsubscribe());
+  }
+
+  openInfo(key: InfoKeys): void {
+    this.dialog.open(InfoDialogComponent, {
+      data: { key },
+      width: '500px',
+    });
   }
 }

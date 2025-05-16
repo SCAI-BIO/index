@@ -122,3 +122,27 @@ a.external-link {
     vertical-align: middle;
   }
 }
+
+.info-button {
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0 4px;
+  width: auto;
+  height: auto;
+  min-width: unset;
+  min-height: unset;
+
+  &:hover {
+    background: none;
+    .info-icon {
+      color: #1565c0;
+    }
+  }
+
+  .info-icon {
+    font-size: 20px;
+    color: #1976d2;
+  }
+}
