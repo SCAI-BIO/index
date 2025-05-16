@@ -31,7 +31,6 @@ export class ChordDiagramComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.fetchData();
-    this.chordService.setColors();
   }
 
   ngOnDestroy(): void {
