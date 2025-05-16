@@ -103,6 +103,16 @@ export class ChordDiagramService {
 
     const svgGroup = this.initSvgGroup(svg, width, height);
 
+    svgGroup
+      .append('filter')
+      .attr('id', 'glow')
+      .append('feDropShadow')
+      .attr('dx', 0)
+      .attr('dy', 0)
+      .attr('stdDeviation', 3)
+      .attr('flood-color', '#000')
+      .attr('flood-opacity', 0.4);
+
     const grouped = this.groupChordGroupsByName(chords.groups, nodes);
     this.drawGroupArcs(svgGroup, grouped, outerRadius);
     this.drawNodeLabels(svgGroup, chords, nodes, outerRadius);
@@ -181,10 +191,32 @@ export class ChordDiagramService {
     width: number,
     height: number
   ) {
+    // Ensure glow filter is added only once
+    if (svg.select('defs').empty()) {
+      const defs = svg.append('defs');
+
+      const filter = defs
+        .append('filter')
+        .attr('id', 'glow')
+        .attr('x', '-50%')
+        .attr('y', '-50%')
+        .attr('width', '200%')
+        .attr('height', '200%');
+
+      filter
+        .append('feDropShadow')
+        .attr('dx', 0)
+        .attr('dy', 0)
+        .attr('stdDeviation', 3)
+        .attr('flood-color', 'black')
+        .attr('flood-opacity', 0.6);
+    }
+
     return svg
       .attr('width', '100%')
       .attr('height', '100%')
       .attr('viewBox', `0 0 ${width + 200} ${height + 200}`)
+      .style('overflow', 'visible') // prevents clipping of filter effects
       .append('g')
       .attr(
         'transform',
@@ -285,14 +317,22 @@ export class ChordDiagramService {
             (r: d3.Chord) =>
               r.source.index === index || r.target.index === index
           )
+          .transition()
+          .duration(200)
           .style('fill', 'black')
-          .style('stroke', 'black');
+          .style('stroke', 'black')
+          .style('filter', 'url(#glow)')
+          .style('opacity', 1);
       })
       .on('mouseout', () => {
         svgGroup
           .selectAll<SVGPathElement, d3.Chord>('path.ribbon')
+          .transition()
+          .duration(200)
+          .style('filter', null)
           .style('fill', 'skyblue')
-          .style('stroke', 'skyblue');
+          .style('stroke', 'skyblue')
+          .style('opacity', 0.75);
       });
   }
 
@@ -319,6 +359,7 @@ export class ChordDiagramService {
       .enter()
       .append('path')
       .attr('class', 'ribbon')
+      .style('filter', null)
       .attr('d', ribbon);
   }
 
