@@ -84,7 +84,7 @@ export class ChordDiagramService {
     const width = 800;
     const height = 800;
     const outerRadius = Math.min(width, height) * 0.4 - 100;
-    const innerRadius = outerRadius - 30;
+    const innerRadius = outerRadius - 0.1;
 
     let nodes: ChordNode[] = data.nodes.map((node: ChordNode) => ({
       ...node,
@@ -143,6 +143,35 @@ export class ChordDiagramService {
         `translate(${(width + 200) / 2},${(height + 200) / 2})`
       );
 
+    const groupArcs = d3
+      .arc<d3.ChordGroup>()
+      .innerRadius(outerRadius + 5)
+      .outerRadius(outerRadius + 30);
+
+    const groupedByColor = d3.groups(
+      chords.groups,
+      (d) => nodes[d.index].group
+    );
+
+    svgGroup
+      .append('g')
+      .attr('class', 'group-highlight')
+      .selectAll('path')
+      .data(groupedByColor)
+      .enter()
+      .append('path')
+      .attr('d', ([, groupChords]) => {
+        const startAngle = d3.min(groupChords, (d) => d.startAngle)!;
+        const endAngle = d3.max(groupChords, (d) => d.endAngle)!;
+        return groupArcs({
+          startAngle,
+          endAngle,
+          value: 1,
+          index: 0,
+        } as d3.ChordGroup);
+      })
+      .attr('fill', ([group]) => this.colorScale(group))
+
     const group = svgGroup
       .append('g')
       .selectAll('g')
@@ -152,14 +181,8 @@ export class ChordDiagramService {
 
     group
       .append('path')
-      .style('fill', (d: d3.ChordGroup) => {
-        const feature = nodes[d.index];
-        return this.colorScale(feature.group);
-      })
-      .style('stroke', (d: d3.ChordGroup) => {
-        const feature = nodes[d.index];
-        return d3.rgb(this.colorScale(feature.group)).darker().toString();
-      })
+      .style('fill', '#e0e0e0')
+      .style('stroke', '#bdbdbd')
       .attr('d', (d) => arc(d)!);
 
     group
@@ -172,7 +195,7 @@ export class ChordDiagramService {
         'transform',
         (d: LabeledChordGroup) => `
                 rotate(${(d.angle! * 180) / Math.PI - 90})
-                translate(${outerRadius + 20})
+                translate(${outerRadius + 35})
                 ${d.angle! > Math.PI ? 'rotate(180)' : ''}
             `
       )
