@@ -290,7 +290,7 @@ export class ChordDiagramService {
           .duration(200)
           .style('fill', 'black')
           .style('stroke', 'black')
-          .style('opacity', 1);
+          .style('opacity', 0.8);
       })
       .on('mouseout', () => {
         svgGroup
