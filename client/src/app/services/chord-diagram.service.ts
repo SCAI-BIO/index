@@ -282,7 +282,7 @@ export class ChordDiagramService {
     return svg
       .attr('width', '100%')
       .attr('height', '100%')
-      .attr('viewBox', `0 0 ${width + 200} ${height + 200}`)
+      .attr('viewBox', `0 0 ${width + 300} ${height + 300}`)
       .style('overflow', 'visible') // prevents clipping of filter effects
       .append('g')
       .attr(
@@ -429,13 +429,18 @@ export class ChordDiagramService {
         'transform',
         (d: LabeledChordGroup) => `
         rotate(${(d.angle! * 180) / Math.PI - 90})
-        translate(${outerRadius + 35})
+        translate(${outerRadius + 50})
         ${d.angle! > Math.PI ? 'rotate(180)' : ''}`
       )
       .style('text-anchor', (d: LabeledChordGroup) =>
         d.angle! > Math.PI ? 'end' : null
       )
-      .style('font-size', '16px')
+      .style('font-size', (d: d3.ChordGroup) => {
+        const label = nodes[d.index].name;
+        if (label.length > 25) return '12px';
+        if (label.length > 15) return '13px';
+        return '14px';
+      })
       .text((d: d3.ChordGroup) => nodes[d.index].name)
       .on('mouseover', function (event: MouseEvent, d: d3.ChordGroup) {
         const index = d.index;
