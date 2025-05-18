@@ -53,20 +53,102 @@ export class ChordDiagramService {
    * @returns Array of ChordData chunks.
    */
   chunkData(data: ChordData, chunkSize: number): ChordData[] {
-    const chunks: ChordData[] = [];
-    for (let i = 0; i < data.nodes.length; i += chunkSize) {
-      chunks.push({
-        nodes: data.nodes.slice(i, i + chunkSize),
-        links: data.links.filter((link: ChordLink) =>
-          data.nodes
-            .slice(i, i + chunkSize)
-            .some(
-              (node: ChordNode) =>
-                node.name === link.source || node.name === link.target
-            )
-        ),
+    // Define unique keys for each node (e.g., "Intracellular Water|Study1")
+    const getKey = (node: ChordNode | { name: string; group: string }) =>
+      `${node.name}|${node.group}`;
+
+    const nodeMap = new Map<string, ChordNode>();
+    data.nodes.forEach((node) => nodeMap.set(getKey(node), node));
+
+    // Build adjacency based on fully qualified node IDs (name + group)
+    const adjacency = new Map<string, Set<string>>();
+    data.links.forEach(({ source, target }) => {
+      const sourceNodes = data.nodes.filter((n) => n.name === source);
+      const targetNodes = data.nodes.filter((n) => n.name === target);
+
+      for (const s of sourceNodes) {
+        for (const t of targetNodes) {
+          const sKey = getKey(s);
+          const tKey = getKey(t);
+
+          if (!adjacency.has(sKey)) adjacency.set(sKey, new Set());
+          if (!adjacency.has(tKey)) adjacency.set(tKey, new Set());
+
+          adjacency.get(sKey)!.add(tKey);
+          adjacency.get(tKey)!.add(sKey);
+        }
+      }
+    });
+
+    // Traverse the graph to find connected components
+    const visited = new Set<string>();
+    const components: { nodes: ChordNode[]; links: ChordLink[] }[] = [];
+
+    for (const [key] of nodeMap) {
+      if (visited.has(key)) continue;
+
+      const queue = [key];
+      const componentKeys = new Set<string>();
+
+      while (queue.length) {
+        const currentKey = queue.shift()!;
+        if (visited.has(currentKey)) continue;
+
+        visited.add(currentKey);
+        componentKeys.add(currentKey);
+
+        for (const neighbor of adjacency.get(currentKey) ?? []) {
+          if (!visited.has(neighbor)) {
+            queue.push(neighbor);
+          }
+        }
+      }
+
+      const nodes = Array.from(componentKeys)
+        .map((k) => nodeMap.get(k)!)
+        .filter(Boolean);
+
+      const nodeSet = new Set(nodes.map((n) => getKey(n)));
+      const links = data.links.filter((link) => {
+        const sources = data.nodes
+          .filter((n) => n.name === link.source)
+          .map((n) => getKey(n));
+        const targets = data.nodes
+          .filter((n) => n.name === link.target)
+          .map((n) => getKey(n));
+        return (
+          sources.some((s) => nodeSet.has(s)) &&
+          targets.some((t) => nodeSet.has(t))
+        );
       });
+
+      components.push({ nodes, links });
     }
+
+    // Pack components into chunks
+    const chunks: ChordData[] = [];
+    let currentNodes: ChordNode[] = [];
+    let currentLinks: ChordLink[] = [];
+    let currentSize = 0;
+
+    for (const component of components) {
+      const size = component.nodes.length;
+      if (currentSize + size > chunkSize && currentNodes.length > 0) {
+        chunks.push({ nodes: currentNodes, links: currentLinks });
+        currentNodes = [];
+        currentLinks = [];
+        currentSize = 0;
+      }
+
+      currentNodes.push(...component.nodes);
+      currentLinks.push(...component.links);
+      currentSize += size;
+    }
+
+    if (currentNodes.length > 0) {
+      chunks.push({ nodes: currentNodes, links: currentLinks });
+    }
+
     this.dataChunks = chunks;
     return chunks;
   }

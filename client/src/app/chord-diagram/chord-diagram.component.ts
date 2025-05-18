@@ -41,7 +41,7 @@ export class ChordDiagramComponent implements OnInit, OnDestroy {
     this.loading = true;
     const sub = this.http.get<ChordData>(`assets/chord_data.json`).subscribe({
       next: (v) => {
-        this.dataChunks = this.chordService.chunkData(v, 33);
+        this.dataChunks = this.chordService.chunkData(v, 40);
         this.chordService.createChordDiagrams(
           this.dataChunks,
           this.currentIndex
