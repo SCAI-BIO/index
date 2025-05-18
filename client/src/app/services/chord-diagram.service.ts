@@ -47,10 +47,26 @@ export class ChordDiagramService {
   }
 
   /**
-   * Splits a large chord dataset into smaller chunks.
-   * @param data - Full chord data to be chunked.
-   * @param chunkSize - Number of nodes per chunk.
-   * @returns Array of ChordData chunks.
+   * Splits the full chord dataset into connected chunks of nodes and links,
+   * ensuring that semantically connected variables (across different study groups)
+   * are kept in the same chunk and not split across diagrams.
+   *
+   * Nodes are uniquely identified using both their `name` and `group` fields to
+   * prevent merging of distinct variables with the same label from different studies.
+   *
+   * The algorithm:
+   * 1. Builds an adjacency graph where each node is identified by `name|group`.
+   * 2. Traverses the graph to extract connected components (subgraphs).
+   * 3. Packs multiple components into chunks of up to `chunkSize` nodes.
+   *
+   * This avoids issues such as:
+   * - Singleton nodes with no visible links.
+   * - Variables being split across multiple diagrams.
+   * - Loss of connections due to duplicate `name` labels in different groups.
+   *
+   * @param data - The full chord data to be chunked.
+   * @param chunkSize - The maximum number of nodes per resulting diagram chunk.
+   * @returns An array of ChordData chunks, each containing connected and cohesive subsets of the full graph.
    */
   chunkData(data: ChordData, chunkSize: number): ChordData[] {
     // Define unique keys for each node (e.g., "Intracellular Water|Study1")
