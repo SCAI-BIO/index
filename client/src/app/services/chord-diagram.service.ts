@@ -346,15 +346,31 @@ export class ChordDiagramService {
     const legend = d3
       .select(svgElement)
       .insert('div', 'svg')
-      .attr('class', 'legend');
+      .attr('class', 'legend')
+      .style('display', 'flex')
+      .style('flex-wrap', 'column');
 
     existingGroups.forEach((group) => {
-      const row = legend.append('div').attr('class', 'legend-row');
+      const row = legend
+        .append('div')
+        .attr('class', 'legend-row')
+        .style('display', 'flex')
+        .style('align-items', 'center')
+        .style('margin-right', '20px');
       row
         .append('div')
         .attr('class', 'legend-color')
-        .style('background-color', this.colorScale(group));
-      row.append('div').attr('class', 'legend-text').text(group);
+        .style('background-color', this.colorScale(group))
+        .style('width', '20px')
+        .style('height', '20px')
+        .style('margin-right', '5px')
+        .style('border-radius', '4px');
+      row
+        .append('div')
+        .attr('class', 'legend-text')
+        .text(group)
+        .style('font-size', '12px')
+        .style('color', 'black');
     });
   }
 }
