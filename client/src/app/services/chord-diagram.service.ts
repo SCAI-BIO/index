@@ -279,15 +279,18 @@ export class ChordDiagramService {
     width: number,
     height: number
   ) {
+    const extraPadding = 200;
     return svg
       .attr('width', '100%')
       .attr('height', '100%')
-      .attr('viewBox', `0 0 ${width + 300} ${height + 300}`)
+      .attr('viewBox', `0 0 ${width + extraPadding} ${height + extraPadding}`)
       .style('overflow', 'visible') // prevents clipping of filter effects
       .append('g')
       .attr(
         'transform',
-        `translate(${(width + 200) / 2},${(height + 200) / 2})`
+        `translate(${(width + extraPadding) / 2},${
+          (height + extraPadding) / 2
+        })`
       );
   }
 
@@ -437,9 +440,12 @@ export class ChordDiagramService {
       )
       .style('font-size', (d: d3.ChordGroup) => {
         const label = nodes[d.index].name;
-        if (label.length > 25) return '12px';
-        if (label.length > 15) return '13px';
-        return '14px';
+        if (label.length > 60) return '10px';
+        if (label.length > 50) return '11px';
+        if (label.length > 40) return '12px';
+        if (label.length > 30) return '13px';
+        if (label.length > 20) return '14px';
+        return '15px';
       })
       .text((d: d3.ChordGroup) => nodes[d.index].name)
       .on('mouseover', function (event: MouseEvent, d: d3.ChordGroup) {
