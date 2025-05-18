@@ -105,9 +105,9 @@ export class ChordDiagramService {
 
     const grouped = this.groupChordGroupsByName(chords.groups, nodes);
     this.drawGroupArcs(svgGroup, grouped, outerRadius);
+    this.drawGroupLabels(svgGroup, grouped, outerRadius);
     this.drawNodeLabels(svgGroup, chords, nodes, outerRadius);
     this.drawRibbons(svgGroup, chords, innerRadius);
-    this.drawLegend(svgElement as Element, nodes);
   }
 
   /**
@@ -230,6 +230,67 @@ export class ChordDiagramService {
   }
 
   /**
+   * Draws curved group labels along the outer arcs of the chord diagram.
+   *
+   * For each group of chord segments, this method generates a hidden SVG arc path
+   * positioned just outside the outerRadius, and then renders the group name along
+   * that path using <textPath>. The labels follow the curvature of the arc and
+   * are centered within their respective group spans.
+   *
+   * @param svgGroup - The main SVG <g> container where the labels will be appended.
+   * @param grouped - An array of tuples where each tuple contains a group name and the
+   *                  corresponding chord group segments.
+   * @param outerRadius - The base radius of the chord diagram used to position labels
+   *                      slightly outside the outer arc.
+   */
+  private drawGroupLabels(
+    svgGroup: d3.Selection<SVGGElement, unknown, null, undefined>,
+    grouped: [string, d3.ChordGroup[]][],
+    outerRadius: number
+  ) {
+    const groupLabels = svgGroup
+      .append('g')
+      .attr('class', 'group-labels')
+      .selectAll('text')
+      .data(grouped)
+      .enter();
+
+    // Create curved text paths for each group
+    groupLabels
+      .append('path')
+      .attr('id', (d, i) => `groupLabelArc-${i}`)
+      .attr('d', ([, groupChords]) => {
+        const startAngle = d3.min(groupChords, (d) => d.startAngle)!;
+        const endAngle = d3.max(groupChords, (d) => d.endAngle)!;
+        const radius = outerRadius + 17.5; // Position in the middle of the arc (5px + 30px) / 2 + 5px
+
+        // Generate an arc path for the text to follow
+        const arcGenerator = d3
+          .arc<null>()
+          .innerRadius(radius)
+          .outerRadius(radius)
+          .startAngle(startAngle)
+          .endAngle(endAngle);
+
+        return arcGenerator(null)!;
+      })
+      .style('fill', 'none'); // Path should be invisible
+
+    // Add text that follows the created path
+    groupLabels
+      .append('text')
+      .attr('dy', '5px')
+      .append('textPath')
+      .attr('xlink:href', (d, i) => `#groupLabelArc-${i}`)
+      .attr('startOffset', '25%') // Start text at 25% along the path
+      .style('text-anchor', 'middle')
+      .style('font-size', '12px')
+      .style('font-weight', 'bold')
+      .style('fill', 'black')
+      .text(([groupName]) => groupName);
+  }
+
+  /**
    * Draws node arc segments and their labels with hover interactivity.
    * @param svgGroup - D3 selection of the root SVG group.
    * @param chords - D3 chords containing groups and links.
@@ -330,47 +391,5 @@ export class ChordDiagramService {
       .style('fill', '#0066cc')
       .style('stroke', 'white')
       .style('opacity', 0.9);
-  }
-
-  /**
-   * Draws a color-coded legend for the available groups.
-   * @param svgElement - The container element where legend is inserted.
-   * @param nodes - Node data used to determine unique group labels.
-   */
-  private drawLegend(svgElement: Element, nodes: ChordNode[]) {
-    const existingGroups = Array.from(
-      new Set(nodes.map((node) => node.group))
-    ).sort();
-    d3.select(svgElement).selectAll('.legend').remove();
-
-    const legend = d3
-      .select(svgElement)
-      .insert('div', 'svg')
-      .attr('class', 'legend')
-      .style('display', 'flex')
-      .style('flex-wrap', 'column');
-
-    existingGroups.forEach((group) => {
-      const row = legend
-        .append('div')
-        .attr('class', 'legend-row')
-        .style('display', 'flex')
-        .style('align-items', 'center')
-        .style('margin-right', '20px');
-      row
-        .append('div')
-        .attr('class', 'legend-color')
-        .style('background-color', this.colorScale(group))
-        .style('width', '20px')
-        .style('height', '20px')
-        .style('margin-right', '5px')
-        .style('border-radius', '4px');
-      row
-        .append('div')
-        .attr('class', 'legend-text')
-        .text(group)
-        .style('font-size', '12px')
-        .style('color', 'black');
-    });
   }
 }
