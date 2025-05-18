@@ -61,10 +61,25 @@ b {
 
 // Description Box
 .description-box {
-  max-width: 50%;
+  max-width: 60%;
   margin-bottom: 20px;
   text-align: center;
   align-self: center;
+
+  ul {
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+    text-align: left;
+
+    li {
+      padding-left: 8px;
+      list-style: none;
+      margin-bottom: 6px;
+      text-align: center;
+      text-indent: -12px;
+    }
+  }
 }
 
 // Table Styles
