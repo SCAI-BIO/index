@@ -1,27 +1,68 @@
 # Client
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.6.
+- [Client](#client)
+  - [Introduction](#introduction)
+  - [Tutorial](#tutorial)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Starting the Frontend Locally](#starting-the-frontend-locally)
+    - [Run the Frontend via Docker](#run-the-frontend-via-docker)
 
-## Development server
+## Introduction
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+This repository contains the frontend code for the Kitsune web application. It allows users to find the closest semantic match in various ontologies via query search or cohort dictionary upload. The user can also visualize the Common Data Model of Healthy Living in table view or in chords diagram.
 
-## Code scaffolding
+## Tutorial
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+For a detailed guide on using Angular, refer to the official [Angular Tutorial](https://angular.dev/tutorial).
 
-## Build
+## Requirements
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- [Angular == 19.x.x](https://angular.dev/installation)
+- [Node.js >= 18.19.1](https://nodejs.org/en/download/package-manager)
+- TypeScript >= 5.5.0
 
-## Running unit tests
+## Installation
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Install the project dependencies:
 
-## Running end-to-end tests
+```bash
+npm install
+```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Usage
 
-## Further help
+### Starting the Frontend Locally
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+You can deploy a local version of the web application via Angular
+
+You can access the web application on [localhost:4200](http://localhost:4200):
+
+```bash
+ng serve
+```
+
+### Run the Frontend via Docker
+
+You can deploy a local version of the web application via docker.
+
+You can either build the docker container locally or download the latest build from the Kitsune GitHub package registry.
+
+To build the Docker container locally:
+
+```bash
+docker build -t ghcr.io/scai-bio/client/kitsune:latest .
+```
+
+To download the latest build:
+
+```bash
+docker pull ghcr.io/scai-bio/kitsune/client:latest
+```
+
+After build/download you will be able to start the container and access the Kitsune web application per default on [localhost:8080](http://localhost:8080/):
+
+```bash
+docker run -p 8080:80 ghcr.io/scai-bio/kitsune/client:latest
+```
