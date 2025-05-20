@@ -47,11 +47,7 @@ ng serve
 
 #### via Docker
 
-You can deploy a local version of the web application via docker.
-
-You can either build the docker container locally or download the latest build from the Kitsune GitHub package registry.
-
-To build the Docker container locally:
+You can deploy a local version of the web application via docker. To build the Docker container locally:
 
 ```bash
 docker build -t ghcr.io/scai-bio/kitsune/client:latest .
