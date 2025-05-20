@@ -57,7 +57,7 @@ To build the Docker container locally:
 docker build -t ghcr.io/scai-bio/kitsune/client:latest .
 ```
 
-After building or downloading the image, you can start the container and access the Kitsune web application at [localhost:8080](http://localhost:8080/):
+After building the image, you can start the container and access the Kitsune web application at [localhost:8080](http://localhost:8080/):
 
 ```bash
 docker run -p 8080:80 ghcr.io/scai-bio/kitsune/client:latest
