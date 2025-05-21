@@ -42,7 +42,7 @@ export class QueryComponent implements OnDestroy, OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   closestMappings: Mapping[] = [];
   dataSource = new MatTableDataSource<Mapping>([]);
-  displayedColumns = ['similarity', 'conceptName', 'conceptID', 'terminology'];
+  displayedColumns = ['similarity', 'conceptName', 'conceptID'];
   embeddingModels: string[] = [];
   formData = new FormData();
   loading: boolean;

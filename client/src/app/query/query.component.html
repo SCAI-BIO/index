@@ -138,14 +138,6 @@
         <td mat-cell *matCellDef="let element">{{ element.concept.name }}</td>
       </ng-container>
 
-      <!-- Terminology Column (Displays Terminology Acronym) -->
-      <ng-container matColumnDef="terminology">
-        <th mat-header-cell *matHeaderCellDef>Terminology</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.concept.terminology.name }}
-        </td>
-      </ng-container>
-
       <!-- Table Footer -->
       <ng-container matColumnDef="footer">
         <td
