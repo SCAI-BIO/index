@@ -55,7 +55,8 @@ export class FileService {
           return;
         }
       } catch (error) {
-        console.error('File saving canceled or failed:', error);
+        console.warn('File saving canceled or failed:', error);
+        return;
       }
     }
 
