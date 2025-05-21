@@ -61,23 +61,23 @@ $study2-color: #fffde7;
 
 // Row Hover Effects
 .mat-mdc-row:hover .cell-bg-core-model {
-  background-color: color.adjust($core-model-color, $lightness: -5%);
+  background-color: color.adjust($core-model-color, $lightness: -10%);
 }
 
 .mat-mdc-row:hover .cell-bg-ols {
-  background-color: color.adjust($ols-color, $lightness: -5%);
+  background-color: color.adjust($ols-color, $lightness: -10%);
 }
 
 .mat-mdc-row:hover .cell-bg-ohdsi {
-  background-color: color.adjust($ohdsi-color, $lightness: -5%);
+  background-color: color.adjust($ohdsi-color, $lightness: -10%);
 }
 
 .mat-mdc-row:hover .cell-bg-study1 {
-  background-color: color.adjust($study1-color, $lightness: -5%);
+  background-color: color.adjust($study1-color, $lightness: -10%);
 }
 
 .mat-mdc-row:hover .cell-bg-study2 {
-  background-color: color.adjust($study2-color, $lightness: -5%);
+  background-color: color.adjust($study2-color, $lightness: -10%);
 }
 
 .mat-mdc-cell {

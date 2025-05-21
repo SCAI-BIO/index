@@ -250,9 +250,14 @@ export class HarmonizeComponent implements OnDestroy, OnInit {
       .fetchClosestMappingsQuery(queryFormData)
       .subscribe({
         next: (mappings) => {
+          const { selectedTerminology } = this.harmonizeForm.value;
           const dialogRef = this.dialog.open(TopMatchesDialogComponent, {
             width: '1000px',
-            data: { matches: mappings, variable: row.variable },
+            data: {
+              matches: mappings,
+              terminology: selectedTerminology,
+              variable: row.variable,
+            },
           });
 
           dialogRef.afterClosed().subscribe((selectedMapping: Mapping) => {

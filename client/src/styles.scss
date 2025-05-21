@@ -7,9 +7,14 @@ $bold-font-weight: 600;
 
 // Button variables
 $button-primary: #171321;
-$button-hover: #382f51;
 $button-padding: 10px 20px;
 $button-radius: 5px;
+
+// Info button variable
+$info-button-color: #1976d2;
+
+// External link variable
+$external-link-color: #1e88e5;
 
 // Typography
 body {
@@ -38,16 +43,16 @@ b {
   font-size: $font-size;
   font-weight: bold;
   border: none;
-  cursor: pointer;
   background-color: $button-primary;
   color: white;
   border-radius: $button-radius;
-  transition: background 0.3s ease;
   text-align: center;
   white-space: nowrap;
 
   &:hover {
-    background-color: $button-hover;
+    cursor: pointer;
+    background-color: color.adjust($button-primary, $lightness: 20%);
+    transition: background-color 0.3s ease-in-out;
   }
 }
 
@@ -126,27 +131,29 @@ b {
 }
 
 a.external-link {
-  color: #1e88e5;
+  color: $external-link-color;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
 
-  &:hover {
+  &:hover .external-link-text {
     text-decoration: underline;
   }
 
   .external-link-icon {
     font-size: 16px;
+    margin-left: 4px;
   }
 }
 
 .info-button {
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: none;
   box-shadow: none;
   padding: 0;
-  margin: 0 4px;
+  margin-left: 4px;
   width: auto;
   height: auto;
   min-width: unset;
@@ -154,13 +161,15 @@ a.external-link {
 
   &:hover {
     background: none;
+
     .info-icon {
-      color: #1565c0;
+      color: color.adjust($info-button-color, $lightness: -10%);
     }
   }
 
   .info-icon {
     font-size: 20px;
-    color: #1976d2;
+    color: $info-button-color;
+    vertical-align: middle;
   }
 }
