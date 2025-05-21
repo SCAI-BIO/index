@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Define global button variables
 $max-width: 90%;
 $font-size: 16px;
@@ -84,15 +86,16 @@ b {
 
 // Table Styles
 .table-container {
-  width: 100%;
   overflow: auto;
   max-height: 800px;
-  max-width: $max-width;
   margin-top: 20px;
-  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 
   table {
     width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 }
 
@@ -100,11 +103,12 @@ b {
 .mat-table th,
 .mat-table td {
   border-right: 1px solid #e0e0e0;
+  padding: 12px 16px;
+  line-height: 1.4;
 }
 
-.mat-table th:last-child,
-.mat-table td:last-child {
-  border-right: none;
+.mat-mdc-row:hover {
+  background-color: color.adjust(white, $lightness: -5%);
 }
 
 // Loading spinner
@@ -134,7 +138,6 @@ a.external-link {
 
   .external-link-icon {
     font-size: 16px;
-    vertical-align: middle;
   }
 }
 
