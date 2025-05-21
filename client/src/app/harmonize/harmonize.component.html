@@ -221,16 +221,22 @@
 
       <!-- Actions Column (Displays the Top Matches on Request) -->
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <th mat-header-cell *matHeaderCellDef>Matches</th>
         <td mat-cell *matCellDef="let element">
           <button
             mat-raised-button
             class="button-style"
             color="primary"
-            [disabled]="!element.mappings"
+            [disabled]="!element.mappings || progressPercent < 100"
             (click)="fetchTopMatches(element.description, element)"
           >
-            Show Matches
+            {{ progressPercent < 100 ? "Please wait" : "Show" }}
+            <mat-icon class="button-icon" *ngIf="progressPercent < 100"
+              >hourglass_empty</mat-icon
+            >
+            <mat-icon class="button-icon" *ngIf="progressPercent >= 100"
+              >search</mat-icon
+            >
           </button>
         </td>
       </ng-container>
